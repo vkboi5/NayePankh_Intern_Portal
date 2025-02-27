@@ -72,7 +72,7 @@ const OngoingCampaigns = () => {
       }
 
       try {
-        const response = await fetch("http://localhost:5000/api/auth/user", {
+        const response = await fetch("https://naye-pankh-intern-portal-backend.vercel.app/api/auth/user", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -106,7 +106,7 @@ const OngoingCampaigns = () => {
 
       setIsLoading(true);
       try {
-        const response = await fetch("http://localhost:5000/api/campaign", {
+        const response = await fetch("https://naye-pankh-intern-portal-backend.vercel.app/api/campaign", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -246,7 +246,7 @@ const OngoingCampaigns = () => {
     setIsLoading(true);
     try {
       const milliseconds = durationUnit === "days" ? parseInt(duration) * 24 * 60 * 60 * 1000 : parseInt(duration) * 60 * 60 * 1000;
-      const response = await fetch(`http://localhost:5000/api/campaign/${selectedCampaignId}/extend`, {
+      const response = await fetch(`https://naye-pankh-intern-portal-backend.vercel.app/api/campaign/${selectedCampaignId}/extend`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

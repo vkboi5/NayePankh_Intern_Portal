@@ -74,7 +74,7 @@ const theme = createTheme({
   },
 });
 
-const FRONTEDN_URL = "http://localhost:5174";
+const FRONTEDN_URL = "https://naye-pankh-intern-portal.vercel.app";
 
 
 const DashboardPage = () => {
@@ -102,7 +102,7 @@ const DashboardPage = () => {
       if (!isLoggedIn) return;
       setIsLoading(true);
       try {
-        const response = await fetch(`http://localhost:5000/api/auth/user`, {
+        const response = await fetch(`https://naye-pankh-intern-portal-backend.vercel.app/api/auth/user`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -144,7 +144,7 @@ const DashboardPage = () => {
       if (!isLoggedIn) return;
       setIsLoading(true);
       try {
-        const response = await fetch("http://localhost:5000/api/campaign", {
+        const response = await fetch("https://naye-pankh-intern-portal-backend.vercel.app/api/campaign", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",

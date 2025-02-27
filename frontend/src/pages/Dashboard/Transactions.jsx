@@ -54,7 +54,7 @@ function Transactions() {
       }
 
       try {
-        const response = await fetch("http://localhost:5000/api/donations", {
+        const response = await fetch("https://naye-pankh-intern-portal-backend.vercel.app/api/donations", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
