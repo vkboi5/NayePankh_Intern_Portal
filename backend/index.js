@@ -10,7 +10,7 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: "https://naye-pankh-intern-portal.vercel.app", // Allow requests from your frontend (adjust if deployed)
+  origin:"*", // Allow requests from your frontend (adjust if deployed)
   credentials: true, // Allow cookies or auth headers if needed
 }));
 app.use(express.json()); // Parse JSON request bodies
