@@ -1,11 +1,10 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import { ErrorBoundary } from "react-error-boundary"; // Import ErrorBoundary
 import Dashboard from "./pages/Dashboard/Dashboard";
-import Navbar from "./pages/Navbar";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Donate from "./pages/Donate";
-
+import Home from "./pages/Home"
 // Fallback component for errors
 function ErrorFallback({ error, resetErrorBoundary }) {
   return (
@@ -33,14 +32,12 @@ function ErrorFallback({ error, resetErrorBoundary }) {
 
 // Wrapper component to conditionally render Navbar
 const AppContent = () => {
-  const location = useLocation();
-  const hideNavbar = location.pathname === "/donate" || location.pathname === "/dashboard";
 
   return (
     <>
-      {!hideNavbar && <Navbar />} {/* Render Navbar only if not on /donate or /dashboard */}
       <Routes>
-        <Route path="/" element={<Login />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/register" element={<Register />} />
         <Route path="/donate" element={<Donate />} />

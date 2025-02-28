@@ -34,6 +34,9 @@ import {
   WhatsApp as WhatsAppIcon,
   Star as StarIcon,
   ContentCopy as ContentCopyIcon,
+  Message,
+  QuestionMark,
+  BookOnline,
 } from "@mui/icons-material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
@@ -42,6 +45,9 @@ import OngoingCampaigns from "./OngoingCampaigns";
 import CreateCampaign from "./StartHere";
 import bgImg from "../../assets/campaign.png"; // Ensure this path is correct
 import { deepOrange } from "@mui/material/colors";
+import Feedback from "./Feedback";
+import LearningModules from "./LearningModules";
+import FAQ from "./FAQ";
 
 const drawerWidth = 260;
 
@@ -288,6 +294,9 @@ const DashboardPage = () => {
     { text: "Create Campaign", icon: <AddCircleIcon /> },
     { text: "Transactions", icon: <ListAltIcon /> },
     { text: "Ongoing Campaigns", icon: <ProductionQuantityLimits /> },
+    { text: "Learning Modules", icon: <BookOnline /> },
+    { text: "Feedback", icon: <Message /> },
+    { text: "FAQ", icon: <QuestionMark /> },
   ];
 
   const drawerContent = (
@@ -1134,6 +1143,9 @@ const DashboardPage = () => {
           {selectedSection === "Create Campaign" && <CreateCampaign />}
           {selectedSection === "Transactions" && <Transactions />}
           {selectedSection === "Ongoing Campaigns" && <OngoingCampaigns />}
+          {selectedSection === "Learning Modules" && <LearningModules />}
+          {selectedSection === "Feedback" && <Feedback />}
+          {selectedSection === "FAQ" && <FAQ />}
         </Box>
 
         {/* Snackbar for Copy Link */}

@@ -1,0 +1,158 @@
+import React from "react";
+import {
+  Box,
+  Typography,
+  Container,
+  Button,
+} from "@mui/material";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
+import { useNavigate } from "react-router-dom";
+import mainLogo from "../assets/NayePankh-logo.png"; // Logo from main site
+
+// Theme matching NayePankh Foundation
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: "#2ECC71", // Emerald Green
+    },
+    secondary: {
+      main: "#F1C40F", // Sunflower Yellow
+    },
+    background: {
+      default: "#FFFFFF", // Clean white
+    },
+    text: {
+      primary: "#34495E", // Dark Slate
+    },
+  },
+  typography: {
+    fontFamily: "'Poppins', sans-serif",
+    h1: { fontWeight: 800 },
+    h3: { fontWeight: 700 },
+    body1: { fontWeight: 400 },
+  },
+});
+
+function InternsHome() {
+  const navigate = useNavigate();
+
+  const handleLoginClick = () => {
+    navigate("/login"); // Redirect to /login
+  };
+
+  return (
+    <ThemeProvider theme={theme}>
+      <Box
+        sx={{
+          minHeight: "100vh",
+          bgcolor: "background.default",
+          position: "relative",
+          overflow: "hidden",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        {/* Hero Section */}
+        <Box
+          sx={{
+            position: "relative",
+            height: "100vh", // Full viewport height
+            width: "100vw", // Full viewport width
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1,
+            "&:before": {
+              content: '""',
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background:
+                "linear-gradient(to bottom, rgba(52, 73, 94, 0.7), rgba(52, 73, 94, 0.3))",
+              zIndex: 1,
+            },
+          }}
+        >
+          <Container
+            maxWidth="md"
+            sx={{
+              position: "relative",
+              zIndex: 2,
+              textAlign: "center",
+              color: "#FFFFFF",
+            }}
+          >
+            <Box sx={{ display: "flex", justifyContent: "center", mb: 3 }}>
+              <img
+                src={mainLogo}
+                alt="NayePankh Logo"
+                style={{ height: "100px", width: "auto" }}
+              />
+            </Box>
+            <Typography
+              variant="h1"
+              component="h1"
+              sx={{
+                fontSize: { xs: "2rem", sm: "3rem", md: "4rem" }, // Responsive font size
+                textShadow: "4px 4px 12px rgba(0,0,0,0.7)",
+                mb: 2,
+                lineHeight: 1.2,
+                animation: "fadeIn 2s ease-in-out",
+                "@keyframes fadeIn": {
+                  "0%": { opacity: 0, transform: "translateY(30px)" },
+                  "100%": { opacity: 1, transform: "translateY(0)" },
+                },
+              }}
+            >
+              Welcome to the Interns Portal
+            </Typography>
+            <Typography
+              variant="h5"
+              component="p"
+              sx={{
+                fontSize: { xs: "1rem", sm: "1.25rem", md: "1.5rem" },
+                fontWeight: 300,
+                maxWidth: "700px",
+                mx: "auto",
+                mb: 4,
+                textShadow: "1px 1px 4px rgba(0,0,0,0.5)",
+              }}
+            >
+              Join our team of dedicated interns to empower communities and create lasting change with NayePankh Foundation.
+            </Typography>
+            <Button
+              variant="contained"
+              onClick={handleLoginClick}
+              sx={{
+                bgcolor: "#F1C40F", // Yellow
+                color: "#34495E",
+                textTransform: "uppercase",
+                fontWeight: "bold",
+                borderRadius: 50,
+                py: 1.5,
+                px: 6,
+                fontSize: { xs: "1rem", md: "1.25rem" },
+                boxShadow: "0px 6px 20px rgba(0,0,0,0.25)",
+                transition: "all 0.3s ease",
+                "&:hover": {
+                  bgcolor: "#F39C12",
+                  transform: "scale(1.05)",
+                  boxShadow: "0px 8px 25px rgba(0,0,0,0.3)",
+                },
+              }}
+            >
+              Login
+            </Button>
+          </Container>
+        </Box>
+      </Box>
+    </ThemeProvider>
+  );
+}
+
+export default InternsHome;
