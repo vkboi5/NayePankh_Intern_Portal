@@ -53,7 +53,7 @@ const Login = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("https://naye-pankh-intern-portal-backend.vercel.app/api/auth/login", {
+      const response = await fetch("https://naye-pankh-intern-portal-ox93.vercel.app/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),

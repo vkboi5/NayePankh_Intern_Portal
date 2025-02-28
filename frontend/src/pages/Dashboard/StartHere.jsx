@@ -91,7 +91,7 @@ const CreateCampaign = () => {
 
     setIsLoading(true);
     try {
-      const response = await fetch("https://naye-pankh-intern-portal-backend.vercel.app/api/campaign", {
+      const response = await fetch("https://naye-pankh-intern-portal-ox93.vercel.app/api/campaign", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -63,7 +63,7 @@ const Donate = () => {
 
       try {
         console.log("Fetching campaigns for referralCode:", referralCode);
-        const response = await fetch(`https://naye-pankh-intern-portal-backend.vercel.app/api/donate/${encodeURIComponent(referralCode)}`);
+        const response = await fetch(`https://naye-pankh-intern-portal-ox93.vercel.app/api/donate/${encodeURIComponent(referralCode)}`);
         const data = await response.json();
         if (response.ok) {
           setCampaigns(data.campaigns || []);
@@ -143,7 +143,7 @@ const Donate = () => {
     try {
       const amountInPaise = Math.round(amountInINR * 100);
 
-      const response = await fetch("https://naye-pankh-intern-portal-backend.vercel.app/api/donate", {
+      const response = await fetch("https://naye-pankh-intern-portal-ox93.vercel.app/api/donate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -170,7 +170,7 @@ const Donate = () => {
         description: `Donation to ${selectedCampaign?.title || "Campaign"}`,
         order_id: orderData.orderId,
         handler: async (response) => {
-          const verifyResponse = await fetch("https://naye-pankh-intern-portal-backend.vercel.app/api/donate/verify", {
+          const verifyResponse = await fetch("https://naye-pankh-intern-portal-ox93.vercel.app/api/donate/verify", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
