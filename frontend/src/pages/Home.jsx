@@ -1,13 +1,9 @@
 import React from "react";
-import {
-  Box,
-  Typography,
-  Container,
-  Button,
-} from "@mui/material";
+import { Box, Typography, Container, Button } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
 import mainLogo from "../assets/NayePankh-logo.png"; // Logo from main site
+import sampleVideo from "../assets/sample-video.mp4"; // Your background video
 
 // Theme matching NayePankh Foundation
 const theme = createTheme({
@@ -52,15 +48,32 @@ function InternsHome() {
           flexDirection: "column",
         }}
       >
+        {/* Background Video */}
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            zIndex: 0,
+          }}
+        >
+          <source src={sampleVideo} type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+
         {/* Hero Section */}
         <Box
           sx={{
             position: "relative",
             height: "100vh", // Full viewport height
             width: "100vw", // Full viewport width
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            backgroundRepeat: "no-repeat",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -87,18 +100,32 @@ function InternsHome() {
               color: "#FFFFFF",
             }}
           >
-            <Box sx={{ display: "flex", justifyContent: "center", mb: 3 }}>
-              <img
-                src={mainLogo}
-                alt="NayePankh Logo"
-                style={{ height: "100px", width: "auto" }}
-              />
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                mb: 3,
+              }}
+            >
+              <Box sx={{
+                backgroundColor: "#FFFFFF",
+                padding: 1,
+                width: "200px",
+                height: "170px",
+                borderRadius: 2,
+              }}>
+                <img
+                  src={mainLogo}
+                  alt="NayePankh Logo"
+                  style={{ height: "150px", width: "150px" }}
+                />
+              </Box>
             </Box>
             <Typography
               variant="h1"
               component="h1"
               sx={{
-                fontSize: { xs: "2rem", sm: "3rem", md: "4rem" }, // Responsive font size
+                fontSize: { xs: "2rem", sm: "3rem", md: "4rem" },
                 textShadow: "4px 4px 12px rgba(0,0,0,0.7)",
                 mb: 2,
                 lineHeight: 1.2,
@@ -123,7 +150,8 @@ function InternsHome() {
                 textShadow: "1px 1px 4px rgba(0,0,0,0.5)",
               }}
             >
-              Join our team of dedicated interns to empower communities and create lasting change with NayePankh Foundation.
+              Join our team of dedicated interns to empower communities and
+              create lasting change with NayePankh Foundation.
             </Typography>
             <Button
               variant="contained"
