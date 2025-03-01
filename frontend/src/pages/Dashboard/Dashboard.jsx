@@ -15,8 +15,8 @@ import {
   Button,
   Snackbar,
   Avatar,
-  Popover, // Import Popover for avatar menu
-  ListItemButton as PopoverListItemButton, // Rename to avoid conflict
+  Popover,
+  ListItemButton as PopoverListItemButton,
   CircularProgress,
   Alert,
   Dialog,
@@ -24,6 +24,8 @@ import {
   DialogContent,
   DialogActions,
   Grid,
+  Breadcrumbs,
+  Link,
 } from "@mui/material";
 import {
   Menu as MenuIcon,
@@ -37,14 +39,14 @@ import {
   Message,
   QuestionMark,
   BookOnline,
+  NavigateNext as NavigateNextIcon,
 } from "@mui/icons-material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
 import Transactions from "./Transactions";
 import OngoingCampaigns from "./OngoingCampaigns";
 import CreateCampaign from "./StartHere";
-import bgImg from "../../assets/campaign.png"; // Ensure this path is correct
-import { deepOrange } from "@mui/material/colors";
+import bgImg from "../../assets/bgimg.jpg"; // Ensure this path is correct
 import Feedback from "./Feedback";
 import LearningModules from "./LearningModules";
 import FAQ from "./FAQ";
@@ -54,20 +56,30 @@ const drawerWidth = 260;
 const theme = createTheme({
   palette: {
     primary: {
-      main: "#FF9933", // Saffron
+      main: "#216eb6", // Logo-matching blue
     },
     secondary: {
-      main: "#138808", // Green
+      main: "#42A5F5", // Lighter blue
     },
     background: {
-      default: "#FFF4E6", // Light saffron tint
+      default: "#E3F2FD", // Very light blue background
     },
-    lightOrange: {
-      main: "#FFE5B4", // Light orange for General background and circular loader
+    lightBlue: {
+      main: "#BBDEFB", // Light blue for accents
+    },
+    whatsappGreen: {
+      main: "#25D366", // Green for WhatsApp buttons
+    },
+    referralPink: {
+      main: "#d32f2f", // Red for referral code
+    },
+    text: {
+      primary: "#263238", // Darker gray
+      secondary: "#546E7A", // Softer gray
     },
   },
   typography: {
-    fontFamily: "'Poppins', sans-serif", // Modern font
+    fontFamily: "'Poppins', sans-serif",
   },
   breakpoints: {
     values: {
@@ -82,7 +94,6 @@ const theme = createTheme({
 
 const FRONTEDN_URL = "https://naye-pankh-intern-portal.vercel.app";
 
-
 const DashboardPage = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
@@ -96,12 +107,11 @@ const DashboardPage = () => {
   });
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [rewardsDialogOpen, setRewardsDialogOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false); // For loading state
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const token = localStorage.getItem("token");
   const isLoggedIn = !!token;
-
 
   useEffect(() => {
     const fetchUserDetails = async () => {
@@ -118,24 +128,11 @@ const DashboardPage = () => {
         const data = await response.json();
         if (response.ok) {
           const { referralCode } = data.user;
-          if (
-            !referralCode ||
-            typeof referralCode !== "string" ||
-            !/^[A-Za-z0-9]+$/.test(referralCode)
-          ) {
-            console.error("Invalid referral code from backend:", referralCode);
-            setUserDetails({
-              name: `${data.user.firstname} ${data.user.lastname}`,
-              email: data.user.email,
-              referralCode: "",
-            });
-          } else {
-            setUserDetails({
-              name: `${data.user.firstname} ${data.user.lastname}`,
-              email: data.user.email,
-              referralCode,
-            });
-          }
+          setUserDetails({
+            name: `${data.user.firstname} ${data.user.lastname}`,
+            email: data.user.email,
+            referralCode: /^[A-Za-z0-9]+$/.test(referralCode) ? referralCode : "",
+          });
         } else {
           console.error("Failed to fetch user details:", data.msg);
         }
@@ -160,9 +157,7 @@ const DashboardPage = () => {
         const data = await response.json();
         if (response.ok) {
           setCampaigns(data.campaigns || []);
-          setSelectedCampaign(
-            data.campaigns.length > 0 ? data.campaigns[0] : null
-          );
+          setSelectedCampaign(data.campaigns.length > 0 ? data.campaigns[0] : null);
         } else {
           console.error("Failed to fetch campaigns:", data.msg);
         }
@@ -179,7 +174,7 @@ const DashboardPage = () => {
 
   const handleDrawerToggle = () => setMobileOpen(!mobileOpen);
 
-  const handleMenuOpen = (event) => setAnchorEl(event.currentTarget); // Use Popover anchor
+  const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
 
   const handleMenuClose = () => setAnchorEl(null);
 
@@ -188,90 +183,53 @@ const DashboardPage = () => {
   const handleLogout = () => {
     localStorage.removeItem("token");
     navigate("/");
-    setAnchorEl(null); // Close popover on logout
+    setAnchorEl(null);
   };
 
   const handleSectionChange = (section) => {
-    if (section !== "General") {
-      setSelectedSection(section);
-      if (mobileOpen) setMobileOpen(false);
-    }
+    setSelectedSection(section);
+    if (mobileOpen) setMobileOpen(false);
   };
-
 
   const handleLogoClick = () => navigate("/");
 
   const handleCopyLink = () => {
-    if (
-      !userDetails.referralCode ||
-      typeof userDetails.referralCode !== "string" ||
-      !/^[A-Za-z0-9]+$/.test(userDetails.referralCode)
-    ) {
+    if (!/^[A-Za-z0-9]+$/.test(userDetails.referralCode)) {
       console.error("Invalid referral code:", userDetails.referralCode);
       return;
     }
-    const donationLink = `${FRONTEDN_URL}/donate?ref=${encodeURIComponent(
-      userDetails.referralCode
-    )}`;
+    const donationLink = `${FRONTEDN_URL}/donate?ref=${encodeURIComponent(userDetails.referralCode)}`;
     navigator.clipboard.writeText(donationLink);
     setSnackbarOpen(true);
   };
 
   const handleShareWhatsApp = (campaign) => {
-    if (
-      !userDetails.referralCode ||
-      typeof userDetails.referralCode !== "string" ||
-      !/^[A-Za-z0-9]+$/.test(userDetails.referralCode)
-    ) {
+    if (!/^[A-Za-z0-9]+$/.test(userDetails.referralCode)) {
       console.error("Invalid referral code:", userDetails.referralCode);
       return;
     }
-    const donationLink = `${FRONTEDN_URL}/donate?ref=${encodeURIComponent(
-      userDetails.referralCode
-    )}`;
-    const message = `Support "${
-      campaign?.title || "Our Campaigns"
-    }" with NayePankh Foundation! ${
-      campaign?.description || "Help make a difference."
-    } Goal: ₹${campaign?.goalAmount?.toLocaleString() || "N/A"}, Raised: ₹${
-      campaign?.raisedAmount?.toLocaleString() || "0"
-    }. Donate here: ${donationLink} using referral code ${
-      userDetails.referralCode
-    }. Visit www.nayepankh.org.in for more.`;
+    const donationLink = `${FRONTEDN_URL}/donate?ref=${encodeURIComponent(userDetails.referralCode)}`;
+    const message = `Support "${campaign?.title || "Our Campaigns"}" with NayePankh Foundation! ${campaign?.description || "Help make a difference."} Goal: ₹${campaign?.goalAmount?.toLocaleString() || "N/A"}, Raised: ₹${campaign?.raisedAmount?.toLocaleString() || "0"}. Donate here: ${donationLink} using referral code ${userDetails.referralCode}. Visit www.nayepankh.org.in for more.`;
     const url = `https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(url, "_blank");
   };
 
   const handleShareWhatsAppHero = () => {
-    if (
-      !userDetails.referralCode ||
-      typeof userDetails.referralCode !== "string" ||
-      !/^[A-Za-z0-9]+$/.test(userDetails.referralCode)
-    ) {
+    if (!/^[A-Za-z0-9]+$/.test(userDetails.referralCode)) {
       console.error("Invalid referral code:", userDetails.referralCode);
       return;
     }
-    const donationLink = `${FRONTEDN_URL}/donate?ref=${encodeURIComponent(
-      userDetails.referralCode
-    )}`;
-    const message = `Support "${"Our Campaigns"}" with NayePankh Foundation! ${"Help make a difference."} Goal: ₹${totalGoalAcrossCampaigns.toLocaleString()}, Raised: ₹${totalRaisedAcrossCampaigns.toLocaleString()}. Donate here: ${donationLink} using referral code ${
-      userDetails.referralCode
-    }. Visit www.nayepankh.org.in for more.`;
+    const donationLink = `${FRONTEDN_URL}/donate?ref=${encodeURIComponent(userDetails.referralCode)}`;
+    const message = `Support "Our Campaigns" with NayePankh Foundation! Help make a difference. Goal: ₹${totalGoalAcrossCampaigns.toLocaleString()}, Raised: ₹${totalRaisedAcrossCampaigns.toLocaleString()}. Donate here: ${donationLink} using referral code ${userDetails.referralCode}. Visit www.nayepankh.org.in for more.`;
     const url = `https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(url, "_blank");
   };
 
-  const handleRewardsClick = () => {
-    setRewardsDialogOpen(true);
-  };
+  const handleRewardsClick = () => setRewardsDialogOpen(true);
 
-  const handleCloseDialog = () => {
-    setRewardsDialogOpen(false);
-  };
+  const handleCloseDialog = () => setRewardsDialogOpen(false);
 
-  const handleCloseSnackbar = () => {
-    setSnackbarOpen(false);
-  };
+  const handleCloseSnackbar = () => setSnackbarOpen(false);
 
   const getLevelAchieved = (raisedAmount) => {
     if (raisedAmount >= 10000) return "Master";
@@ -285,11 +243,9 @@ const DashboardPage = () => {
     0
   );
   const totalGoalAcrossCampaigns =
-    campaigns.reduce((sum, campaign) => sum + (campaign.goalAmount || 0), 0) ||
-    1; // Default to 1 to avoid division by zero
+    campaigns.reduce((sum, campaign) => sum + (campaign.goalAmount || 0), 0) || 1;
 
   const menuItems = [
-    { text: "General" },
     { text: "Dashboard", icon: <DashboardIcon /> },
     { text: "Create Campaign", icon: <AddCircleIcon /> },
     { text: "Transactions", icon: <ListAltIcon /> },
@@ -300,13 +256,7 @@ const DashboardPage = () => {
   ];
 
   const drawerContent = (
-    <Box
-      sx={{
-        bgcolor: "#F9F9F9",
-        height: "100%",
-        borderRight: "1px solid #E0E0E0",
-      }}
-    >
+    <Box sx={{ bgcolor: "#F9F9F9", height: "100%", borderRight: "1px solid #E0E0E0" }}>
       <Box
         sx={{
           p: { xs: 1, sm: 2 },
@@ -315,7 +265,7 @@ const DashboardPage = () => {
           alignItems: "center",
           justifyContent: "center",
           cursor: "pointer",
-          boxShadow: "0px 2px 5px rgba(0,0,0,0.1)",
+          boxShadow: "0px 2px 10px rgba(0,0,0,0.2)",
         }}
         onClick={handleLogoClick}
       >
@@ -324,10 +274,10 @@ const DashboardPage = () => {
           sx={{
             fontWeight: 800,
             color: "white",
-            letterSpacing: 2,
+            letterSpacing: 1,
             fontStyle: "normal",
-            textShadow: "2px 2px 4px rgba(0,0,0,0.2)",
-            fontSize: { xs: "1.5rem", sm: "1.5rem" },
+            textShadow: "2px 2px 4px rgba(0,0,0,0.3)",
+            fontSize: { xs: "1.5rem", sm: "1.8rem" },
           }}
         >
           NayePankh
@@ -339,30 +289,23 @@ const DashboardPage = () => {
             <PopoverListItemButton
               onClick={() => handleSectionChange(item.text)}
               sx={{
-                py: { xs: 1, sm: 1.5 },
-                px: { xs: 1, sm: 3 },
-                bgcolor:
-                  selectedSection === item.text
-                    ? "primary.main"
-                    : "transparent",
-                color: selectedSection === item.text ? "white" : "primary.main",
+                py: { xs: 1.2, sm: 1.5 },
+                px: { xs: 2, sm: 3 },
+                bgcolor: selectedSection === item.text ? "rgba(33,110,182,0.1)" : "transparent",
+                color: selectedSection === item.text ? "primary.main" : "text.secondary",
                 "&:hover": {
-                  bgcolor:
-                    selectedSection === item.text
-                      ? "primary.dark"
-                      : "rgba(255,153,51,0.1)",
-                  color:
-                    selectedSection === item.text ? "white" : "primary.main",
+                  bgcolor: "rgba(33,110,182,0.1)",
+                  color: "primary.main",
                 },
                 transition: "all 0.3s ease",
+                borderRadius: 1,
+                mx: 1,
               }}
             >
               <ListItemIcon
                 sx={{
-                  color:
-                    selectedSection === item.text ? "white" : "primary.main",
-                  "&:hover": { color: "primary.main" },
-                  minWidth: { xs: 30, sm: 40 }, // Adjust icon size for mobile
+                  color: selectedSection === item.text ? "primary.main" : "text.secondary",
+                  minWidth: { xs: 40, sm: 48 },
                 }}
               >
                 {item.icon}
@@ -371,8 +314,8 @@ const DashboardPage = () => {
                 primary={item.text}
                 sx={{
                   "& .MuiTypography-root": {
-                    fontSize: { xs: "0.9rem", sm: "1.1rem" },
-                    fontWeight: selectedSection === item.text ? 700 : 500,
+                    fontSize: { xs: "0.9rem", sm: "1rem" },
+                    fontWeight: selectedSection === item.text ? 600 : 400,
                   },
                 }}
               />
@@ -383,7 +326,6 @@ const DashboardPage = () => {
     </Box>
   );
 
-  // Circular progress for individual campaigns with custom colors
   const getCircularProgress = (raised, goal) => {
     const progress = Math.min((raised / goal) * 100, 100) || 0;
     return (
@@ -391,27 +333,19 @@ const DashboardPage = () => {
         <CircularProgress
           variant="determinate"
           value={progress}
-          size={100}
-          thickness={4}
-          sx={{
-            color: theme.palette.primary.main, // Filled portion in saffron (#FF9933)
-            "& .MuiCircularProgress-circle": {
-              strokeLinecap: "round",
-            },
-          }}
+          size={80}
+          thickness={5}
+          sx={{ color: "secondary.main", "& .MuiCircularProgress-circle": { strokeLinecap: "round" } }}
         />
         <CircularProgress
           variant="determinate"
-          value={100} // Full circle for background
-          size={100}
-          thickness={4}
+          value={100}
+          size={80}
+          thickness={5}
           sx={{
             position: "absolute",
-            color: theme.palette.lightOrange.main, // Non-filled portion in light orange (#FFE5B4)
-            opacity: 0.5, // Slightly transparent for distinction
-            "& .MuiCircularProgress-circle": {
-              strokeLinecap: "round",
-            },
+            color: "rgba(33,110,182,0.2)",
+            "& .MuiCircularProgress-circle": { strokeLinecap: "round" },
           }}
         />
         <Box
@@ -430,7 +364,7 @@ const DashboardPage = () => {
             variant="caption"
             component="div"
             color="text.primary"
-            sx={{ fontSize: { xs: "0.7rem", sm: "0.9rem" } }}
+            sx={{ fontSize: { xs: "0.8rem", sm: "1rem" }, fontWeight: 600 }}
           >
             {`${Math.round(progress)}%`}
           </Typography>
@@ -441,70 +375,46 @@ const DashboardPage = () => {
 
   return (
     <ThemeProvider theme={theme}>
-      <Box
-        sx={{
-          display: "flex",
-          bgcolor: "background.default",
-          minHeight: "100vh",
-        }}
-      >
-        {/* Top Bar */}
+      <Box sx={{ display: "flex", bgcolor: "background.default", minHeight: "100vh" }}>
         <AppBar
           position="fixed"
           sx={{
             width: { sm: `calc(100% - ${drawerWidth}px)` },
             ml: { sm: `${drawerWidth}px` },
             bgcolor: "primary.main",
-            boxShadow: "0px 4px 10px rgba(0,0,0,0.2)",
-            borderBottom: "1px solid rgba(255,255,255,0.2)",
+            boxShadow: "0px 4px 20px rgba(0,0,0,0.15)",
+            borderBottom: "none",
           }}
         >
-          <Toolbar>
+          <Toolbar sx={{ py: 1 }}>
             <IconButton
               color="inherit"
               aria-label="open drawer"
               edge="start"
               onClick={handleDrawerToggle}
-              sx={{
-                mr: { xs: 1, sm: 2 },
-                display: { sm: "none" },
-                color: "white",
-              }}
+              sx={{ mr: { xs: 1, sm: 2 }, display: { sm: "none" }, color: "white" }}
             >
               <MenuIcon />
             </IconButton>
             <Typography
               variant="h6"
               noWrap
-              sx={{
-                flexGrow: 1,
-                color: "white",
-                fontWeight: 600,
-                fontSize: { xs: "1rem", sm: "1.5rem" },
-              }}
+              sx={{ flexGrow: 1, color: "white", fontWeight: 700, fontSize: { xs: "1.2rem", sm: "1.5rem" }, letterSpacing: 0.5 }}
             >
               Welcome, {userDetails.name}!
             </Typography>
-            <Box sx={{ display: "flex", alignItems: "center" }}>
-              <IconButton
-                color="inherit"
-                onClick={handleMenuOpen}
-                sx={{
-                  p: { xs: 0.5, sm: 1 },
-                }}
-              >
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <IconButton color="inherit" onClick={handleMenuOpen} sx={{ p: { xs: 0.5, sm: 1 } }}>
                 <Avatar
                   alt={userDetails.name}
-                  src="/path-to-avatar.jpg" // Replace with actual path
+                  src="/path-to-avatar.jpg"
                   sx={{
-                    width: { xs: 32, sm: 40 }, // Responsive avatar size
+                    width: { xs: 32, sm: 40 },
                     height: { xs: 32, sm: 40 },
                     border: "2px solid white",
-                    boxShadow: "0px 0px 8px rgba(255, 255, 255, 0.5)",
+                    boxShadow: "0px 0px 12px rgba(255, 255, 255, 0.5)",
                     transition: "all 0.3s ease",
-                    "&:hover": {
-                      boxShadow: "0px 0px 12px rgba(255, 255, 255, 0.7)",
-                    },
+                    "&:hover": { boxShadow: "0px 0px 16px rgba(255, 255, 255, 0.8)" },
                   }}
                 />
               </IconButton>
@@ -521,10 +431,7 @@ const DashboardPage = () => {
                     fontSize: { xs: "0.8rem", sm: "1rem" },
                     py: { xs: 0.5, sm: 1 },
                     px: { xs: 1, sm: 2 },
-                    "&:hover": {
-                      bgcolor: "rgba(255,255,255,0.1)",
-                      borderColor: "white",
-                    },
+                    "&:hover": { bgcolor: "rgba(255,255,255,0.1)", borderColor: "white" },
                   }}
                 >
                   Logout
@@ -542,66 +449,44 @@ const DashboardPage = () => {
                     fontSize: { xs: "0.8rem", sm: "1rem" },
                     py: { xs: 0.5, sm: 1 },
                     px: { xs: 1, sm: 2 },
-                    "&:hover": { bgcolor: "#F5F5F5" },
+                    "&:hover": { bgcolor: "#F0F7FF" },
                   }}
                 >
                   Login
                 </Button>
               )}
-              {/* User Menu Popover */}
               <Popover
                 open={Boolean(anchorEl)}
                 anchorEl={anchorEl}
                 onClose={handleMenuClose}
-                anchorOrigin={{
-                  vertical: "bottom",
-                  horizontal: "right",
-                }}
-                transformOrigin={{
-                  vertical: "top",
-                  horizontal: "right",
-                }}
+                anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+                transformOrigin={{ vertical: "top", horizontal: "right" }}
                 sx={{
                   "& .MuiPopover-paper": {
                     borderRadius: 2,
-                    boxShadow: "0px 4px 20px rgba(0,0,0,0.15)",
+                    boxShadow: "0px 6px 25px rgba(0,0,0,0.15)",
                     bgcolor: "white",
-                    minWidth: { xs: 150, sm: 200 },
+                    minWidth: { xs: 180, sm: 220 },
+                    border: "1px solid rgba(33,110,182,0.2)",
                   },
                 }}
               >
-                <Box sx={{ p: { xs: 1, sm: 2 } }}>
-                  <Typography
-                    variant="subtitle1"
-                    sx={{
-                      fontWeight: 600,
-                      color: "primary.main",
-                      mb: { xs: 0.5, sm: 1 },
-                      fontSize: { xs: "0.9rem", sm: "1.1rem" },
-                    }}
-                  >
+                <Box sx={{ p: { xs: 1.5, sm: 2 } }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: "primary.main", mb: 1, fontSize: { xs: "1rem", sm: "1.1rem" } }}>
                     {userDetails.name}
                   </Typography>
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      color: "text.secondary",
-                      mb: { xs: 1, sm: 2 },
-                      fontSize: { xs: "0.7rem", sm: "0.9rem" },
-                    }}
-                  >
+                  <Typography variant="body2" sx={{ color: "text.secondary", mb: 2, fontSize: { xs: "0.8rem", sm: "0.9rem" } }}>
                     {userDetails.email}
                   </Typography>
                   <PopoverListItemButton
                     onClick={handleLogout}
                     sx={{
-                      py: { xs: 0.5, sm: 1 },
-                      px: { xs: 1, sm: 2 },
-                      fontSize: { xs: "0.8rem", sm: "1rem" },
+                      py: 1,
+                      px: 2,
+                      fontSize: { xs: "0.9rem", sm: "1rem" },
                       color: "primary.main",
-                      "&:hover": {
-                        bgcolor: "rgba(255,153,51,0.1)",
-                      },
+                      "&:hover": { bgcolor: "rgba(33,110,182,0.1)" },
+                      borderRadius: 1,
                     }}
                   >
                     Logout
@@ -611,118 +496,79 @@ const DashboardPage = () => {
             </Box>
           </Toolbar>
         </AppBar>
-        {/* Sidebar */}
-        <Box
-          component="nav"
-          sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
-        >
+        <Box component="nav" sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}>
           <Drawer
             variant="temporary"
             open={mobileOpen}
             onClose={handleDrawerToggle}
             ModalProps={{ keepMounted: true }}
-            sx={{
-              display: { xs: "block", sm: "none" },
-              "& .MuiDrawer-paper": {
-                boxSizing: "border-box",
-                width: drawerWidth,
-              },
-            }}
+            sx={{ display: { xs: "block", sm: "none" }, "& .MuiDrawer-paper": { boxSizing: "border-box", width: drawerWidth } }}
           >
             {drawerContent}
           </Drawer>
           <Drawer
             variant="permanent"
-            sx={{
-              display: { xs: "none", sm: "block" },
-              "& .MuiDrawer-paper": {
-                boxSizing: "border-box",
-                width: drawerWidth,
-              },
-            }}
+            sx={{ display: { xs: "none", sm: "block" }, "& .MuiDrawer-paper": { boxSizing: "border-box", width: drawerWidth } }}
             open
           >
             {drawerContent}
           </Drawer>
         </Box>
-        {/* Main Content */}
         <Box
           component="main"
           sx={{
             flexGrow: 1,
-            p: { xs: 2, sm: 4 },
+            p: { xs: 3, sm: 4 },
             width: { sm: `calc(100% - ${drawerWidth}px)` },
             overflow: "auto",
-            mt: { xs: 6, sm: 8 }, // Adjust for mobile
+            mt: { xs: 8, sm: 10 },
             bgcolor: "background.default",
           }}
         >
           {isLoading && (
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "center",
-                mb: { xs: 2, sm: 4 },
-              }}
-            >
-              <CircularProgress color="primary" />
+            <Box sx={{ display: "flex", justifyContent: "center", mb: 4 }}>
+              <CircularProgress color="primary" size={48} />
             </Box>
           )}
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "flex-end",
-              mb: { xs: 2, sm: 3 },
-            }}
-          >
-            <Typography
-              variant="body2"
-              sx={{
-                bgcolor: theme.palette.lightOrange.main,
-                px: { xs: 1, sm: 2 },
-                py: { xs: 0.5, sm: 1 },
-                borderRadius: 2,
-                color: "primary.main",
-                fontWeight: 700,
-                boxShadow: "0px 2px 5px rgba(0,0,0,0.1)",
-                transition: "all 0.3s ease",
-                "&:hover": { bgcolor: "rgba(255,153,51,0.2)" },
-                fontSize: { xs: "0.8rem", sm: "1rem" },
-              }}
+          <Box sx={{ mb: 4 }}>
+            <Breadcrumbs
+              separator={<NavigateNextIcon fontSize="small" sx={{ color: "text.secondary" }} />}
+              aria-label="breadcrumb"
+              sx={{ bgcolor: "white", p: 2, borderRadius: 2, boxShadow: "0px 2px 10px rgba(0,0,0,0.05)" }}
             >
-              General / {selectedSection}
-            </Typography>
+              <Link
+                underline="hover"
+                color="text.secondary"
+                sx={{ fontSize: { xs: "0.9rem", sm: "1rem" }, cursor: "pointer" }}
+                onClick={() => handleSectionChange("Dashboard")}
+              >
+                / Dashboard
+              </Link>
+              <Typography color="primary.main" sx={{ fontSize: { xs: "0.9rem", sm: "1rem" }, fontWeight: 600 }}>
+                {selectedSection}
+              </Typography>
+            </Breadcrumbs>
           </Box>
           {selectedSection === "Dashboard" && (
             <Box>
               <Card
                 sx={{
                   position: "relative",
-                  height: { xs: 300, sm: 550 }, // Reduced height on mobile
-                  backgroundImage: `url(${bgImg})`,
+                  minHeight: { xs: 320, sm: 480 },
+                  backgroundImage: `linear-gradient(135deg, rgba(33,110,182,0.85), rgba(66,165,245,0.65)), url(${bgImg})`,
                   backgroundSize: "cover",
                   backgroundPosition: "center",
                   borderRadius: 3,
-                  mb: { xs: 2, sm: 4 },
-                  boxShadow: "0px 6px 15px rgba(0,0,0,0.1)",
+                  mb: 4,
+                  boxShadow: "0px 8px 25px rgba(0,0,0,0.15)",
                   overflow: "hidden",
+                  transition: "all 0.3s ease",
+                  "&:hover": { transform: "scale(1.02)", backdropFilter: "blur(2px)" },
                 }}
               >
                 <Box
                   sx={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    bgcolor: "rgba(0, 0, 0, 0.4)",
-                    borderRadius: 3,
-                  }}
-                />
-                <Box
-                  sx={{
-                    position: "relative",
-                    p: { xs: 2, sm: 4 },
+                    p: { xs: 3, sm: 5 },
                     color: "white",
                     display: "flex",
                     flexDirection: "column",
@@ -737,9 +583,10 @@ const DashboardPage = () => {
                     sx={{
                       fontWeight: 800,
                       color: "white",
-                      mb: { xs: 1, sm: 2 },
-                      textShadow: "2px 2px 4px rgba(0,0,0,0.5)",
-                      fontSize: { xs: "1.5rem", sm: "3.5rem" },
+                      mb: 2,
+                      textShadow: "3px 3px 8px rgba(0,0,0,0.5)",
+                      fontSize: { xs: "2rem", sm: "3.5rem" },
+                      letterSpacing: 1,
                     }}
                   >
                     Hello, {userDetails.name}!
@@ -747,78 +594,74 @@ const DashboardPage = () => {
                   <Typography
                     variant="h6"
                     sx={{
-                      color: "rgba(255,255,255,0.9)",
-                      maxWidth: { xs: 250, sm: 600 },
-                      fontWeight: 300,
-                      fontSize: { xs: "0.9rem", sm: "1.25rem" },
-                      mb: { xs: 1, sm: 2 },
+                      color: "rgba(255,255,255,0.95)",
+                      maxWidth: 600,
+                      fontWeight: 400,
+                      fontSize: { xs: "1rem", sm: "1.25rem" },
+                      mb: 3,
+                      textShadow: "1px 1px 4px rgba(0,0,0,0.4)",
                     }}
                   >
-                    Initial push is the toughest, but every step forward counts!
+                    Every journey begins with a single step—let's make a difference together!
                   </Typography>
                   <Typography
                     variant="body1"
                     sx={{
                       color: "white",
-                      fontWeight: 600,
-                      fontSize: { xs: "0.9rem", sm: "1.2rem" },
+                      fontWeight: 700,
+                      fontSize: { xs: "1rem", sm: "1.3rem" },
+                      mb: 3,
+                      textShadow: "1px 1px 4px rgba(0,0,0,0.4)",
                     }}
                   >
                     Your Referral Code:
                     <strong
                       style={{
-                        color: deepOrange[400],
-                        marginLeft: "8px",
-                        padding: "6px 10px", // Reduced padding for mobile
-                        border: `2px solid ${deepOrange[400]}`,
-                        borderRadius: "6px",
-                        transition:
-                          "border-color 0.3s ease, background-color 0.3s ease",
+                        color: theme.palette.referralPink.main,
+                        marginLeft: "12px",
+                        padding: "8px 16px",
+                        border: `2px solid ${theme.palette.referralPink.main}`,
+                        borderRadius: "8px",
+                        background: "rgba(211,47,47,0.1)",
+                        transition: "all 0.3s ease",
                         cursor: "pointer",
+                        fontWeight: 600,
                       }}
                       onMouseEnter={(e) => {
-                        e.target.style.borderColor = deepOrange[600];
-                        e.target.style.backgroundColor =
-                          "rgba(255, 165, 0, 0.1)";
+                        e.target.style.background = "rgba(211,47,47,0.2)";
+                        e.target.style.boxShadow = "0px 0px 12px rgba(211,47,47,0.5)";
                       }}
                       onMouseLeave={(e) => {
-                        e.target.style.borderColor = deepOrange[400];
-                        e.target.style.backgroundColor = "transparent";
+                        e.target.style.background = "rgba(211,47,47,0.1)";
+                        e.target.style.boxShadow = "none";
                       }}
                     >
                       {userDetails.referralCode || "Not available"}
                     </strong>
                   </Typography>
-                  <Box
-                    sx={{
-                      mt: { xs: 2, sm: 3 },
-                      display: "flex",
-                      gap: { xs: 1, sm: 2 },
-                      flexWrap: "wrap",
-                      justifyContent: "center",
-                    }}
-                  >
+                  <Box sx={{ display: "flex", gap: { xs: 1.5, sm: 2 }, flexWrap: "wrap", justifyContent: "center" }}>
                     <Button
                       variant="contained"
-                      color="primary"
                       startIcon={<ContentCopyIcon />}
                       onClick={handleCopyLink}
                       sx={{
-                        bgcolor: "white",
-                        color: "primary.main",
-                        "&:hover": { bgcolor: "#F5F5F5" },
-                        borderRadius: 2,
-                        py: { xs: 0.5, sm: 1.5 },
-                        px: { xs: 1, sm: 2 },
-                        fontSize: { xs: "0.8rem", sm: "1rem" },
-                        minWidth: { xs: 120, sm: 160 },
+                        bgcolor: "secondary.main",
+                        color: "white",
+                        "&:hover": { bgcolor: "#1E88E5", boxShadow: "0px 6px 20px rgba(0,0,0,0.2)" },
+                        borderRadius: 25,
+                        py: 1.2,
+                        px: 3,
+                        fontSize: { xs: "0.9rem", sm: "1rem" },
+                        fontWeight: "bold",
+                        boxShadow: "0px 4px 15px rgba(0,0,0,0.1)",
+                        transition: "all 0.3s ease",
+                        textShadow: "1px 1px 2px rgba(0,0,0,0.3)",
                       }}
                     >
-                      Copy Donation Link
+                      Copy Link
                     </Button>
                     <Button
                       variant="contained"
-                      color="secondary"
                       startIcon={<WhatsAppIcon />}
                       onClick={() =>
                         handleShareWhatsAppHero(
@@ -831,201 +674,145 @@ const DashboardPage = () => {
                         )
                       }
                       sx={{
-                        bgcolor: "secondary.main",
-                        "&:hover": { bgcolor: "secondary.dark" },
-                        borderRadius: 2,
-                        py: { xs: 0.5, sm: 1.5 },
-                        px: { xs: 1, sm: 2 },
-                        fontSize: { xs: "0.8rem", sm: "1rem" },
-                        minWidth: { xs: 120, sm: 160 },
+                        bgcolor: "whatsappGreen.main",
+                        color: "white",
+                        "&:hover": { bgcolor: "#20B858", boxShadow: "0px 6px 20px rgba(0,0,0,0.2)" },
+                        borderRadius: 25,
+                        py: 1.2,
+                        px: 3,
+                        fontSize: { xs: "0.9rem", sm: "1rem" },
+                        fontWeight: "bold",
+                        boxShadow: "0px 4px 15px rgba(0,0,0,0.1)",
+                        transition: "all 0.3s ease",
+                        textShadow: "1px 1px 2px rgba(0,0,0,0.3)",
                       }}
                     >
-                      Share on WhatsApp
+                      Share
                     </Button>
                   </Box>
                 </Box>
               </Card>
 
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: { xs: 2, sm: 4 },
-                }}
-              >
-                {/* Goal Achieved (Total Across All Campaigns) */}
-                <Card
-                  sx={{
-                    p: { xs: 2, sm: 3 },
-                    borderRadius: 3,
-                    boxShadow: "0px 4px 12px rgba(0,0,0,0.1)",
-                    bgcolor: "white",
-                    transition: "transform 0.3s ease",
-                    "&:hover": { transform: "translateY(-5px)" },
-                    textAlign: "center",
-                  }}
-                >
-                  <CardContent>
-                    <Typography
-                      variant="h5"
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                <Grid container spacing={4}>
+                  <Grid item xs={12} md={6}>
+                    <Card
                       sx={{
-                        color: "primary.main",
-                        fontWeight: 600,
-                        mb: { xs: 1, sm: 2 },
-                        fontSize: { xs: "1.2rem", sm: "1.5rem" },
+                        p: 3,
+                        borderRadius: 3,
+                        boxShadow: "0px 6px 20px rgba(0,0,0,0.1)",
+                        bgcolor: "white",
+                        transition: "all 0.3s ease",
+                        "&:hover": { transform: "translateY(-5px)", boxShadow: "0px 8px 25px rgba(0,0,0,0.15)" },
                       }}
                     >
-                      Total Goal Achieved
-                    </Typography>
-                    <Box
+                      <CardContent sx={{ textAlign: "center" }}>
+                        <Typography
+                          variant="h5"
+                          sx={{ color: "primary.main", fontWeight: 700, mb: 2, fontSize: { xs: "1.3rem", sm: "1.5rem" } }}
+                        >
+                          Total Goal Achieved
+                        </Typography>
+                        <Box
+                          sx={{
+                            width: { xs: 150, sm: 200 },
+                            height: { xs: 150, sm: 200 },
+                            borderRadius: "50%",
+                            border: `3px dashed ${theme.palette.secondary.main}`,
+                            display: "flex",
+                            flexDirection: "column",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            bgcolor: "rgba(33,110,182,0.05)",
+                            mx: "auto",
+                            transition: "all 0.3s ease",
+                            "&:hover": { bgcolor: "rgba(33,110,182,0.1)" },
+                          }}
+                        >
+                          <Typography
+                            variant="h3"
+                            sx={{ color: "primary.main", fontWeight: 800, fontSize: { xs: "2rem", sm: "2.5rem" } }}
+                          >
+                            {Math.round((totalRaisedAcrossCampaigns / totalGoalAcrossCampaigns) * 100) || 0}%
+                          </Typography>
+                          <Typography
+                            variant="body1"
+                            sx={{ color: "text.primary", mt: 1, fontSize: { xs: "0.9rem", sm: "1rem" } }}
+                          >
+                            ₹{totalRaisedAcrossCampaigns.toLocaleString()}
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            sx={{ color: "text.secondary", fontSize: { xs: "0.8rem", sm: "0.9rem" } }}
+                          >
+                            of ₹{totalGoalAcrossCampaigns.toLocaleString()}
+                          </Typography>
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Card
                       sx={{
-                        width: { xs: 150, sm: 200 },
-                        height: { xs: 150, sm: 200 },
-                        borderRadius: "50%",
-                        border: "2px dashed #FF9933",
-                        display: "flex",
-                        flexDirection: "column",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        bgcolor: "rgba(255,153,51,0.1)",
-                        mx: "auto",
+                        p: 3,
+                        borderRadius: 3,
+                        boxShadow: "0px 6px 20px rgba(0,0,0,0.1)",
+                        bgcolor: "white",
+                        transition: "all 0.3s ease",
+                        "&:hover": { transform: "translateY(-5px)", boxShadow: "0px 8px 25px rgba(0,0,0,0.15)" },
                       }}
                     >
-                      <Typography
-                        variant="h4"
-                        sx={{
-                          color: "secondary.main",
-                          fontWeight: 700,
-                          fontSize: { xs: "1.2rem", sm: "1.8rem" },
-                        }}
-                      >
-                        {Math.round(
-                          (totalRaisedAcrossCampaigns /
-                            totalGoalAcrossCampaigns) *
-                            100
-                        ) || 0}
-                        %
-                      </Typography>
-                      <Typography
-                        variant="body1"
-                        sx={{
-                          color: "text.primary",
-                          mt: { xs: 0.5, sm: 1 },
-                          fontSize: { xs: "0.8rem", sm: "1rem" },
-                        }}
-                      >
-                        ₹{totalRaisedAcrossCampaigns.toLocaleString()}
-                      </Typography>
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          color: "text.secondary",
-                          fontSize: { xs: "0.7rem", sm: "0.9rem" },
-                        }}
-                      >
-                        Total Goal ₹{totalGoalAcrossCampaigns.toLocaleString()}
-                      </Typography>
-                    </Box>
-                  </CardContent>
-                </Card>
+                      <CardContent sx={{ textAlign: "center" }}>
+                        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+                          <Typography
+                            variant="h5"
+                            sx={{ color: "primary.main", fontWeight: 700, fontSize: { xs: "1.3rem", sm: "1.5rem" } }}
+                          >
+                            Level Achieved
+                          </Typography>
+                          <Button
+                            variant="contained"
+                            color="secondary"
+                            onClick={handleRewardsClick}
+                            sx={{
+                              bgcolor: "secondary.main",
+                              "&:hover": { bgcolor: "#1E88E5" },
+                              borderRadius: 20,
+                              py: 0.5,
+                              px: 2,
+                              fontSize: { xs: "0.8rem", sm: "0.9rem" },
+                              fontWeight: "bold",
+                            }}
+                          >
+                            Rewards
+                          </Button>
+                        </Box>
+                        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 1 }}>
+                          <StarIcon sx={{ color: "#FFD700", fontSize: { xs: 28, sm: 36 } }} />
+                          <Typography variant="h4" sx={{ fontWeight: 700, color: "primary.main", fontSize: { xs: "1.5rem", sm: "2rem" } }}>
+                            {getLevelAchieved(totalRaisedAcrossCampaigns)}
+                          </Typography>
+                        </Box>
+                        <Typography
+                          variant="body2"
+                          sx={{ color: "text.secondary", mt: 1, fontSize: { xs: "0.8rem", sm: "0.9rem" } }}
+                        >
+                          Unlock levels: Star (₹1,000), Ninja (₹5,000), Master (₹10,000)
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                </Grid>
 
-                {/* Level Achieved & Reward Button */}
-                <Card
-                  sx={{
-                    p: { xs: 2, sm: 3 },
-                    borderRadius: 3,
-                    boxShadow: "0px 4px 12px rgba(0,0,0,0.1)",
-                    bgcolor: "white",
-                    transition: "transform 0.3s ease",
-                    "&:hover": { transform: "translateY(-5px)" },
-                  }}
-                >
-                  <CardContent sx={{ textAlign: "center" }}>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        mb: { xs: 1, sm: 2 },
-                      }}
-                    >
-                      <Typography
-                        variant="h5"
-                        sx={{
-                          color: "primary.main",
-                          fontWeight: 600,
-                          fontSize: { xs: "1.2rem", sm: "1.5rem" },
-                        }}
-                      >
-                        Level Achieved
-                      </Typography>
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={handleRewardsClick}
-                        sx={{
-                          bgcolor: "primary.main",
-                          "&:hover": { bgcolor: "primary.dark" },
-                          borderRadius: 2,
-                          py: { xs: 0.5, sm: 1 },
-                          px: { xs: 1, sm: 2 },
-                          fontSize: { xs: "0.8rem", sm: "1rem" },
-                        }}
-                      >
-                        Rewards
-                      </Button>
-                    </Box>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        gap: { xs: 0.5, sm: 1 },
-                      }}
-                    >
-                      <StarIcon
-                        sx={{ color: "#FFD700", fontSize: { xs: 20, sm: 30 } }}
-                      />
-                      <Typography
-                        variant="h6"
-                        sx={{
-                          fontWeight: 700,
-                          color: "text.primary",
-                          fontSize: { xs: "1rem", sm: "1.5rem" },
-                        }}
-                      >
-                        {getLevelAchieved(totalRaisedAcrossCampaigns)}
-                      </Typography>
-                    </Box>
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        color: "text.secondary",
-                        mt: { xs: 0.5, sm: 1 },
-                        fontSize: { xs: "0.7rem", sm: "0.9rem" },
-                      }}
-                    >
-                      Unlock levels with donations: Star (₹1,000), Ninja
-                      (₹5,000), Master (₹10,000)
-                    </Typography>
-                  </CardContent>
-                </Card>
-
-                {/* Campaigns Overview (if any) */}
                 {campaigns.length > 0 && (
-                  <Box sx={{ mt: { xs: 2, sm: 4 } }}>
+                  <Box sx={{ mt: 4 }}>
                     <Typography
                       variant="h5"
-                      sx={{
-                        mb: { xs: 2, sm: 3 },
-                        color: "primary.main",
-                        fontWeight: 600,
-                        fontSize: { xs: "1.2rem", sm: "1.5rem" },
-                      }}
+                      sx={{ mb: 3, color: "primary.main", fontWeight: 700, fontSize: { xs: "1.3rem", sm: "1.5rem" } }}
                     >
                       Your Campaigns
                     </Typography>
-                    <Grid container spacing={{ xs: 2, sm: 4 }}>
+                    <Grid container spacing={4}>
                       {campaigns.map((campaign) => (
                         <Grid item xs={12} sm={6} md={4} key={campaign._id}>
                           <Card
@@ -1033,98 +820,64 @@ const DashboardPage = () => {
                               boxShadow: "0px 6px 20px rgba(0,0,0,0.1)",
                               borderRadius: 3,
                               bgcolor: "white",
-                              transition: "transform 0.3s ease",
-                              "&:hover": { transform: "translateY(-5px)" },
+                              transition: "all 0.3s ease",
+                              "&:hover": { transform: "translateY(-5px)", boxShadow: "0px 8px 25px rgba(0,0,0,0.15)" },
+                              border: "1px solid rgba(33,110,182,0.1)",
                             }}
                           >
-                            <CardContent sx={{ p: { xs: 2, sm: 4 } }}>
+                            <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
                               <Typography
                                 variant="h6"
-                                sx={{
-                                  mb: { xs: 1, sm: 2 },
-                                  color: "primary.main",
-                                  fontWeight: 600,
-                                  fontSize: { xs: "1.1rem", sm: "1.3rem" },
-                                }}
+                                sx={{ mb: 1.5, color: "primary.main", fontWeight: 600, fontSize: { xs: "1.1rem", sm: "1.3rem" } }}
                               >
                                 {campaign.title}
                               </Typography>
                               <Typography
-                                variant="body1"
-                                sx={{
-                                  mb: { xs: 1, sm: 2 },
-                                  color: "text.secondary",
-                                  fontSize: { xs: "0.8rem", sm: "1rem" },
-                                }}
+                                variant="body2"
+                                sx={{ mb: 2, color: "text.secondary", fontSize: { xs: "0.8rem", sm: "0.9rem" }, lineHeight: 1.6 }}
                               >
                                 {campaign.description}
                               </Typography>
                               <Typography
                                 variant="body1"
-                                sx={{
-                                  mb: { xs: 0.5, sm: 1 },
-                                  fontWeight: 500,
-                                  fontSize: { xs: "0.8rem", sm: "1rem" },
-                                }}
+                                sx={{ mb: 1, fontWeight: 500, fontSize: { xs: "0.8rem", sm: "1rem" } }}
                               >
                                 Goal: ₹{campaign.goalAmount.toLocaleString()}
                               </Typography>
                               <Typography
                                 variant="body1"
-                                sx={{
-                                  mb: { xs: 1, sm: 2 },
-                                  fontWeight: 500,
-                                  fontSize: { xs: "0.8rem", sm: "1rem" },
-                                }}
+                                sx={{ mb: 2, fontWeight: 500, fontSize: { xs: "0.8rem", sm: "1rem" } }}
                               >
-                                Raised: ₹
-                                {campaign.raisedAmount.toLocaleString()}
+                                Raised: ₹{campaign.raisedAmount.toLocaleString()}
                               </Typography>
-                              {getCircularProgress(
-                                campaign.raisedAmount,
-                                campaign.goalAmount
-                              )}
+                              {getCircularProgress(campaign.raisedAmount, campaign.goalAmount)}
                               <Typography
                                 variant="body2"
                                 sx={{
-                                  mb: { xs: 1, sm: 2 },
                                   textAlign: "center",
                                   color: "text.secondary",
-                                  fontSize: { xs: "0.7rem", sm: "0.9rem" },
+                                  fontWeight: 500,
+                                  fontSize: { xs: "0.8rem", sm: "0.9rem" },
                                 }}
                               >
-                                {Math.round(
-                                  (campaign.raisedAmount /
-                                    campaign.goalAmount) *
-                                    100
-                                ) || 0}
-                                % of goal reached
+                                {Math.round((campaign.raisedAmount / campaign.goalAmount) * 100) || 0}% Achieved
                               </Typography>
-                              <Box
-                                sx={{
-                                  display: "flex",
-                                  gap: { xs: 1, sm: 2 },
-                                  mb: { xs: 1, sm: 2 },
-                                  justifyContent: "center",
-                                }}
-                              >
+                              <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
                                 <Button
                                   variant="contained"
-                                  color="secondary"
                                   startIcon={<WhatsAppIcon />}
                                   onClick={() => handleShareWhatsApp(campaign)}
                                   sx={{
-                                    py: { xs: 0.5, sm: 1.5 },
-                                    fontSize: { xs: "0.8rem", sm: "1rem" },
+                                    bgcolor: "whatsappGreen.main",
+                                    color: "white",
+                                    "&:hover": { bgcolor: "#20B858" },
+                                    borderRadius: 20,
+                                    py: 1,
+                                    px: 3,
+                                    fontSize: { xs: "0.8rem", sm: "0.9rem" },
                                     fontWeight: "bold",
-                                    borderRadius: 2,
-                                    bgcolor: "secondary.main",
-                                    "&:hover": {
-                                      bgcolor: "secondary.dark",
-                                      transform: "scale(1.03)",
-                                    },
+                                    boxShadow: "0px 4px 15px rgba(0,0,0,0.1)",
                                     transition: "all 0.3s ease",
-                                    boxShadow: "0px 4px 10px rgba(0,0,0,0.2)",
                                   }}
                                 >
                                   Share
@@ -1148,7 +901,6 @@ const DashboardPage = () => {
           {selectedSection === "FAQ" && <FAQ />}
         </Box>
 
-        {/* Snackbar for Copy Link */}
         <Snackbar
           open={snackbarOpen}
           autoHideDuration={3000}
@@ -1158,175 +910,114 @@ const DashboardPage = () => {
           <Alert
             severity="success"
             onClose={handleCloseSnackbar}
-            sx={{
-              fontSize: { xs: "0.8rem", sm: "1rem" },
-            }}
+            sx={{ fontSize: { xs: "0.8rem", sm: "1rem" }, bgcolor: "secondary.main", color: "white" }}
           >
             Donation link copied to clipboard
           </Alert>
         </Snackbar>
 
-        {/* Rewards Dialog */}
-        <Dialog
-          open={rewardsDialogOpen}
-          onClose={handleCloseDialog}
-          maxWidth="md"
-          fullWidth
-        >
-          <DialogTitle
-            sx={{
-              bgcolor: "primary.main",
-              color: "white",
-              textAlign: "center",
-              p: { xs: 2, sm: 4 },
-            }}
-          >
-            NayePankh Rewards Program
+        <Dialog open={rewardsDialogOpen} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+          <DialogTitle sx={{ bgcolor: "primary.main", color: "white", textAlign: "center", p: 2, fontWeight: 700, fontSize: { xs: "1.2rem", sm: "1.5rem" } }}>
+            Rewards Program
           </DialogTitle>
-          <DialogContent sx={{ p: { xs: 2, sm: 4 } }}>
+          <DialogContent sx={{ p: 3, bgcolor: "background.default" }}>
             <Typography
               variant="body1"
-              sx={{
-                color: "text.primary",
-                lineHeight: 1.8,
-                mb: { xs: 1, sm: 2 },
-                fontSize: { xs: "0.8rem", sm: "1rem" },
-              }}
+              sx={{ color: "text.primary", textAlign: "center", mb: 3, fontSize: { xs: "0.9rem", sm: "1rem" }, lineHeight: 1.6 }}
             >
-              Earn exciting rewards by reaching donation milestones with
-              NayePankh:
+              Unlock exciting rewards by reaching donation milestones with NayePankh!
             </Typography>
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                gap: { xs: 1, sm: 2 },
-              }}
-            >
-              <Box
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              <Card
                 sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: { xs: 1, sm: 2 },
+                  p: 2,
+                  borderRadius: 2,
+                  bgcolor: "white",
+                  boxShadow: "0px 4px 15px rgba(0,0,0,0.1)",
+                  transition: "all 0.3s ease",
+                  "&:hover": { transform: "scale(1.02)" },
+                  borderLeft: "4px solid #FFD700",
                 }}
               >
-                <StarIcon
-                  sx={{ color: "#FFD700", fontSize: { xs: 20, sm: 30 } }}
-                />
-                <Box>
-                  <Typography
-                    variant="h6"
-                    sx={{
-                      fontWeight: 600,
-                      color: "primary.main",
-                      fontSize: { xs: "1rem", sm: "1.5rem" },
-                    }}
-                  >
-                    Star Level
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      color: "text.secondary",
-                      fontSize: { xs: "0.7rem", sm: "0.9rem" },
-                    }}
-                  >
-                    Reach ₹1,000 in donations to unlock badges, recognition, and
-                    early access to campaign updates.
-                  </Typography>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                  <StarIcon sx={{ color: "#FFD700", fontSize: { xs: 24, sm: 30 } }} />
+                  <Box>
+                    <Typography variant="h6" sx={{ color: "primary.main", fontWeight: 600, fontSize: { xs: "1rem", sm: "1.2rem" } }}>
+                      Star Level
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: "text.secondary", fontSize: { xs: "0.8rem", sm: "0.9rem" } }}>
+                      ₹1,000: Unlock badges & early updates
+                    </Typography>
+                  </Box>
                 </Box>
-              </Box>
-              <Box
+              </Card>
+              <Card
                 sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: { xs: 1, sm: 2 },
+                  p: 2,
+                  borderRadius: 2,
+                  bgcolor: "white",
+                  boxShadow: "0px 4px 15px rgba(0,0,0,0.1)",
+                  transition: "all 0.3s ease",
+                  "&:hover": { transform: "scale(1.02)" },
+                  borderLeft: "4px solid #FFD700",
                 }}
               >
-                <StarIcon
-                  sx={{ color: "#FFD700", fontSize: { xs: 20, sm: 30 } }}
-                />
-                <Box>
-                  <Typography
-                    variant="h6"
-                    sx={{
-                      fontWeight: 600,
-                      color: "primary.main",
-                      fontSize: { xs: "1rem", sm: "1.5rem" },
-                    }}
-                  >
-                    Ninja Level
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      color: "text.secondary",
-                      fontSize: { xs: "0.7rem", sm: "0.9rem" },
-                    }}
-                  >
-                    Reach ₹5,000 in donations for premium features, priority
-                    support, and exclusive certificates.
-                  </Typography>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                  <StarIcon sx={{ color: "#FFD700", fontSize: { xs: 24, sm: 30 } }} />
+                  <Box>
+                    <Typography variant="h6" sx={{ color: "primary.main", fontWeight: 600, fontSize: { xs: "1rem", sm: "1.2rem" } }}>
+                      Ninja Level
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: "text.secondary", fontSize: { xs: "0.8rem", sm: "0.9rem" } }}>
+                      ₹5,000: Premium features & certificates
+                    </Typography>
+                  </Box>
                 </Box>
-              </Box>
-              <Box
+              </Card>
+              <Card
                 sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: { xs: 1, sm: 2 },
+                  p: 2,
+                  borderRadius: 2,
+                  bgcolor: "white",
+                  boxShadow: "0px 4px 15px rgba(0,0,0,0.1)",
+                  transition: "all 0.3s ease",
+                  "&:hover": { transform: "scale(1.02)" },
+                  borderLeft: "4px solid #FFD700",
                 }}
               >
-                <StarIcon
-                  sx={{ color: "#FFD700", fontSize: { xs: 20, sm: 30 } }}
-                />
-                <Box>
-                  <Typography
-                    variant="h6"
-                    sx={{
-                      fontWeight: 600,
-                      color: "primary.main",
-                      fontSize: { xs: "1rem", sm: "1.5rem" },
-                    }}
-                  >
-                    Master Level
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      color: "text.secondary",
-                      fontSize: { xs: "0.7rem", sm: "0.9rem" },
-                    }}
-                  >
-                    Reach ₹10,000 in donations for featured campaigns,
-                    personalized thank-you videos, and VIP event invitations.
-                  </Typography>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                  <StarIcon sx={{ color: "#FFD700", fontSize: { xs: 24, sm: 30 } }} />
+                  <Box>
+                    <Typography variant="h6" sx={{ color: "primary.main", fontWeight: 600, fontSize: { xs: "1rem", sm: "1.2rem" } }}>
+                      Master Level
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: "text.secondary", fontSize: { xs: "0.8rem", sm: "0.9rem" } }}>
+                      ₹10,000: Featured campaigns & VIP perks
+                    </Typography>
+                  </Box>
                 </Box>
-              </Box>
+              </Card>
             </Box>
             <Typography
-              variant="body1"
-              sx={{
-                color: "text.primary",
-                mt: { xs: 1, sm: 2 },
-                lineHeight: 1.8,
-                fontSize: { xs: "0.8rem", sm: "1rem" },
-              }}
+              variant="body2"
+              sx={{ color: "text.secondary", mt: 3, textAlign: "center", fontSize: { xs: "0.8rem", sm: "0.9rem" }, lineHeight: 1.6 }}
             >
-              Track your progress in the Dashboard and share your referral code
-              to boost donations and climb the reward ladder!
+              Share your referral code to climb the ranks faster!
             </Typography>
           </DialogContent>
-          <DialogActions sx={{ justifyContent: "center", p: { xs: 1, sm: 2 } }}>
+          <DialogActions sx={{ justifyContent: "center", p: 2 }}>
             <Button
               variant="contained"
               color="primary"
               onClick={handleCloseDialog}
               sx={{
                 bgcolor: "primary.main",
-                "&:hover": { bgcolor: "primary.dark" },
-                borderRadius: 2,
-                py: { xs: 0.5, sm: 1.5 },
-                fontSize: { xs: "0.8rem", sm: "1rem" },
+                "&:hover": { bgcolor: "#1E5FA4" },
+                borderRadius: 20,
+                py: 1,
+                px: 3,
+                fontSize: { xs: "0.9rem", sm: "1rem" },
+                fontWeight: "bold",
               }}
             >
               Close

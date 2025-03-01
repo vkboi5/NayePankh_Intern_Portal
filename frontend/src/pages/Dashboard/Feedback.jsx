@@ -2,21 +2,20 @@ import { useState } from "react";
 import { Box, Typography, Container, TextField, Button } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 
-// Theme matching NayePankh Foundation and dashboard style
 const theme = createTheme({
   palette: {
     primary: {
-      main: "#ff9933", // Emerald Green
+      main: "#216eb6", // Logo-matching blue
     },
     secondary: {
-      main: "#F1C40F", // Sunflower Yellow
+      main: "#42A5F5", // Lighter blue
     },
     background: {
-      default: "#ffe2c2", // Light gray for soothing effect
+      default: "#E3F2FD", // Very light blue
     },
     text: {
-      primary: "#34495E", // Dark Slate
-      secondary: "#607D8B", // Lighter slate for contrast
+      primary: "#263238", // Darker gray
+      secondary: "#546E7A", // Softer gray
     },
   },
   typography: {
@@ -40,9 +39,7 @@ function Feedback() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Placeholder for form submission logic (e.g., API call)
     console.log("Feedback Submitted:", formData);
-    // Reset form after submission
     setFormData({ name: "", email: "", message: "" });
     alert("Thank you for your feedback!");
   };
@@ -52,11 +49,11 @@ function Feedback() {
       <Box
         sx={{
           minHeight: "100vh",
-          bgcolor: "background.default", // Light gray background
-          py: { xs: 4, md: 6 }, // Consistent padding with FAQ
+          bgcolor: "background.default",
+          py: { xs: 4, md: 6 },
           position: "relative",
           overflow: "hidden",
-          borderRadius:5,
+          borderRadius: 5,
         }}
       >
         <Container maxWidth="md">
@@ -84,8 +81,7 @@ function Feedback() {
               lineHeight: 1.6,
             }}
           >
-            We value your input! Let us know your thoughts to help us improve
-            and better serve our community.
+            We value your input! Let us know your thoughts to help us improve and better serve our community.
           </Typography>
 
           <Box
@@ -100,7 +96,6 @@ function Feedback() {
               mx: "auto",
             }}
           >
-            {/* Your Name */}
             <TextField
               fullWidth
               label="Your Name"
@@ -116,15 +111,10 @@ function Feedback() {
                   "&:hover fieldset": { borderColor: "primary.main" },
                   "&.Mui-focused fieldset": { borderColor: "primary.main" },
                 },
-                "& .MuiInputLabel-root": {
-                  color: "text.secondary",
-                  "&.Mui-focused": { color: "primary.main" },
-                },
+                "& .MuiInputLabel-root": { color: "text.secondary", "&.Mui-focused": { color: "primary.main" } },
               }}
               required
             />
-
-            {/* Email */}
             <TextField
               fullWidth
               label="Email"
@@ -141,15 +131,10 @@ function Feedback() {
                   "&:hover fieldset": { borderColor: "primary.main" },
                   "&.Mui-focused fieldset": { borderColor: "primary.main" },
                 },
-                "& .MuiInputLabel-root": {
-                  color: "text.secondary",
-                  "&.Mui-focused": { color: "primary.main" },
-                },
+                "& .MuiInputLabel-root": { color: "text.secondary", "&.Mui-focused": { color: "primary.main" } },
               }}
               required
             />
-
-            {/* Message */}
             <TextField
               fullWidth
               label="Message"
@@ -167,22 +152,17 @@ function Feedback() {
                   "&:hover fieldset": { borderColor: "primary.main" },
                   "&.Mui-focused fieldset": { borderColor: "primary.main" },
                 },
-                "& .MuiInputLabel-root": {
-                  color: "text.secondary",
-                  "&.Mui-focused": { color: "primary.main" },
-                },
+                "& .MuiInputLabel-root": { color: "text.secondary", "&.Mui-focused": { color: "primary.main" } },
               }}
               required
             />
-
-            {/* Submit Button */}
             <Box sx={{ textAlign: "center" }}>
               <Button
                 type="submit"
                 variant="contained"
                 sx={{
-                  bgcolor: "#ffe2c2",
-                  color: "#ff9933",
+                  bgcolor: "primary.main",
+                  color: "#FFFFFF",
                   textTransform: "uppercase",
                   fontWeight: "bold",
                   borderRadius: 50,
@@ -192,8 +172,7 @@ function Feedback() {
                   boxShadow: "0px 4px 15px rgba(0,0,0,0.1)",
                   transition: "all 0.3s ease",
                   "&:hover": {
-                    bgcolor: "#ff9933", // Slightly darker green
-                    color: "white",
+                    bgcolor: "#1E5FA4", // Slightly darker blue
                     transform: "scale(1.05)",
                     boxShadow: "0px 6px 20px rgba(0,0,0,0.15)",
                   },

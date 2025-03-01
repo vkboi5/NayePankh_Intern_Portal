@@ -16,13 +16,17 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 const theme = createTheme({
   palette: {
     primary: {
-      main: "#FF9933", // Saffron
+      main: "#216eb6", // Logo-matching blue
     },
     secondary: {
-      main: "#138808", // Green
+      main: "#42A5F5", // Lighter blue
     },
     background: {
-      default: "#FFF4E6", // Light saffron tint
+      default: "#E3F2FD", // Very light blue background
+    },
+    text: {
+      primary: "#263238", // Darker gray for contrast
+      secondary: "#546E7A", // Softer gray for secondary text
     },
   },
   typography: {
@@ -126,26 +130,27 @@ function Transactions() {
               boxShadow: "0px 2px 5px rgba(0,0,0,0.1)",
               borderRadius: 2,
               overflowX: "auto", // Enable horizontal scrolling on mobile
+              border: "1px solid rgba(33,110,182,0.2)", // Subtle blue border
             }}
           >
             <Table sx={{ minWidth: 300 }}>
               <TableHead>
-                <TableRow>
-                  <TableCell sx={{ fontWeight: "bold", fontSize: { xs: "0.8rem", sm: "1rem" } }}>Donor</TableCell>
-                  <TableCell sx={{ fontWeight: "bold", fontSize: { xs: "0.8rem", sm: "1rem" } }}>Amount</TableCell>
-                  <TableCell sx={{ fontWeight: "bold", fontSize: { xs: "0.8rem", sm: "1rem" } }}>Campaign</TableCell>
-                  <TableCell sx={{ fontWeight: "bold", fontSize: { xs: "0.8rem", sm: "1rem" } }}>Transaction ID</TableCell>
-                  <TableCell sx={{ fontWeight: "bold", fontSize: { xs: "0.8rem", sm: "1rem" } }}>Date</TableCell>
+                <TableRow sx={{ bgcolor: "primary.main" }}>
+                  <TableCell sx={{ fontWeight: "bold", fontSize: { xs: "0.8rem", sm: "1rem" }, color: "white" }}>Donor</TableCell>
+                  <TableCell sx={{ fontWeight: "bold", fontSize: { xs: "0.8rem", sm: "1rem" }, color: "white" }}>Amount</TableCell>
+                  <TableCell sx={{ fontWeight: "bold", fontSize: { xs: "0.8rem", sm: "1rem" }, color: "white" }}>Campaign</TableCell>
+                  <TableCell sx={{ fontWeight: "bold", fontSize: { xs: "0.8rem", sm: "1rem" }, color: "white" }}>Transaction ID</TableCell>
+                  <TableCell sx={{ fontWeight: "bold", fontSize: { xs: "0.8rem", sm: "1rem" }, color: "white" }}>Date</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {donations.map((donation) => (
-                  <TableRow key={donation._id}>
-                    <TableCell sx={{ fontSize: { xs: "0.7rem", sm: "0.9rem" } }}>{donation.donorName || "Anonymous"}</TableCell>
-                    <TableCell sx={{ fontSize: { xs: "0.7rem", sm: "0.9rem" } }}>₹{(donation.amount || 0).toLocaleString()}</TableCell>
-                    <TableCell sx={{ fontSize: { xs: "0.7rem", sm: "0.9rem" } }}>{donation.campaign?.title || "Unknown Campaign"}</TableCell>
-                    <TableCell sx={{ fontSize: { xs: "0.7rem", sm: "0.9rem" } }}>{donation.paymentId || "Unknown"}</TableCell>
-                    <TableCell sx={{ fontSize: { xs: "0.7rem", sm: "0.9rem" } }}>{donation.date ? new Date(donation.date).toLocaleString() : "N/A"}</TableCell>
+                  <TableRow key={donation._id} sx={{ "&:hover": { bgcolor: "rgba(33,110,182,0.05)" } }}>
+                    <TableCell sx={{ fontSize: { xs: "0.7rem", sm: "0.9rem" }, color: "text.primary" }}>{donation.donorName || "Anonymous"}</TableCell>
+                    <TableCell sx={{ fontSize: { xs: "0.7rem", sm: "0.9rem" }, color: "text.primary" }}>₹{(donation.amount || 0).toLocaleString()}</TableCell>
+                    <TableCell sx={{ fontSize: { xs: "0.7rem", sm: "0.9rem" }, color: "text.primary" }}>{donation.campaign?.title || "Unknown Campaign"}</TableCell>
+                    <TableCell sx={{ fontSize: { xs: "0.7rem", sm: "0.9rem" }, color: "text.primary" }}>{donation.paymentId || "Unknown"}</TableCell>
+                    <TableCell sx={{ fontSize: { xs: "0.7rem", sm: "0.9rem" }, color: "text.primary" }}>{donation.date ? new Date(donation.date).toLocaleString() : "N/A"}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

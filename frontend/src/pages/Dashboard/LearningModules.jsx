@@ -12,21 +12,20 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import YouTubeIcon from "@mui/icons-material/YouTube";
 
-// Orange-themed palette for a soothing dashboard style
 const theme = createTheme({
   palette: {
     primary: {
-      main: "#FF5722", // Deep Orange
+      main: "#216eb6", // Logo-matching blue
     },
     secondary: {
-      main: "#FF9800", // Lighter Orange
+      main: "#42A5F5", // Lighter blue
     },
     background: {
-      default: "#FFF3E0", // Soothing light orange background
+      default: "#E3F2FD", // Very light blue background
     },
     text: {
-      primary: "#3E2723", // Dark brown for contrast
-      secondary: "#5D4037", // Softer brown for secondary text
+      primary: "#263238", // Darker gray for contrast
+      secondary: "#546E7A", // Softer gray
     },
   },
   typography: {
@@ -37,7 +36,6 @@ const theme = createTheme({
   },
 });
 
-// Learning modules data with TED Talks
 const chapters = [
   {
     id: 1,
@@ -97,14 +95,13 @@ function LearningModules() {
       <Box
         sx={{
           minHeight: "100vh",
-          bgcolor: "background.default", // Light orange background
+          bgcolor: "background.default",
           py: { xs: 4, md: 6 },
           position: "relative",
           overflow: "hidden",
         }}
       >
         <Container maxWidth="lg">
-          {/* Learning Module Info Section */}
           <Box sx={{ mb: 6 }}>
             <Typography
               variant="h3"
@@ -144,7 +141,6 @@ function LearningModules() {
             </Typography>
           </Box>
 
-          {/* Chapters Accordion Section */}
           <Box>
             {chapters.map((chapter) => (
               <Accordion
@@ -194,9 +190,7 @@ function LearningModules() {
                     sx={{
                       position: "relative",
                       display: "inline-block",
-                      "&:hover .youtube-icon": {
-                        opacity: 1,
-                      },
+                      "&:hover .youtube-icon": { opacity: 1 },
                     }}
                   >
                     <Box
@@ -208,9 +202,7 @@ function LearningModules() {
                         height: "auto",
                         borderRadius: 2,
                         transition: "opacity 0.3s ease",
-                        "&:hover": {
-                          opacity: 0.8,
-                        },
+                        "&:hover": { opacity: 0.8 },
                       }}
                     />
                     <Button
@@ -223,16 +215,14 @@ function LearningModules() {
                         left: "50%",
                         transform: "translate(-50%, -50%)",
                         bgcolor: "transparent",
-                        "&:hover": {
-                          bgcolor: "transparent",
-                        },
+                        "&:hover": { bgcolor: "transparent" },
                       }}
                     >
                       <YouTubeIcon
                         className="youtube-icon"
                         sx={{
                           fontSize: { xs: "3rem", md: "4rem" },
-                          color: "#FF0000", // Red YouTube icon
+                          color: "#FF0000",
                           opacity: 0,
                           transition: "opacity 0.3s ease",
                         }}

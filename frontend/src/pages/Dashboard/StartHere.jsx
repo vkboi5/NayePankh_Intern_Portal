@@ -13,21 +13,24 @@ import {
 } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 
-// Custom theme to match your app's aesthetic
 const theme = createTheme({
   palette: {
     primary: {
-      main: "#FF9933", // Saffron
+      main: "#216eb6", // Logo-matching blue
     },
     secondary: {
-      main: "#138808", // Green
+      main: "#42A5F5", // Lighter blue
     },
     background: {
-      default: "#FFF4E6", // Light saffron tint
+      default: "#E3F2FD", // Very light blue
+    },
+    text: {
+      primary: "#263238", // Darker gray
+      secondary: "#546E7A", // Softer gray
     },
   },
   typography: {
-    fontFamily: "'Poppins', sans-serif", // Modern font
+    fontFamily: "'Poppins', sans-serif",
   },
   breakpoints: {
     values: {
@@ -62,7 +65,7 @@ const CreateCampaign = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    setError(""); // Clear error on input change
+    setError("");
   };
 
   const handleCreateCampaign = async (e) => {
@@ -73,7 +76,6 @@ const CreateCampaign = () => {
       return;
     }
 
-    // Validation
     const start = new Date(formData.startDate);
     const end = new Date(formData.endDate);
     if (!formData.title || !formData.description || !formData.goalAmount || !formData.startDate || !formData.endDate) {
@@ -252,13 +254,7 @@ const CreateCampaign = () => {
                   </Grid>
                   {error && (
                     <Grid item xs={12}>
-                      <Typography
-                        color="error"
-                        sx={{
-                          textAlign: "center",
-                          fontSize: { xs: "0.8rem", sm: "1rem" },
-                        }}
-                      >
+                      <Typography color="error" sx={{ textAlign: "center", fontSize: { xs: "0.8rem", sm: "1rem" } }}>
                         {error}
                       </Typography>
                     </Grid>
@@ -275,7 +271,8 @@ const CreateCampaign = () => {
                         fontSize: { xs: "0.9rem", sm: "1.1rem" },
                         fontWeight: "bold",
                         borderRadius: 2,
-                        "&:hover": { bgcolor: "primary.dark" },
+                        bgcolor: "primary.main",
+                        "&:hover": { bgcolor: "#1E5FA4" },
                       }}
                     >
                       {isLoading ? "Creating..." : "Create Campaign"}
@@ -295,10 +292,7 @@ const CreateCampaign = () => {
           <Alert
             onClose={handleCloseSnackbar}
             severity="success"
-            sx={{
-              width: "100%",
-              fontSize: { xs: "0.8rem", sm: "1rem" },
-            }}
+            sx={{ width: "100%", fontSize: { xs: "0.8rem", sm: "1rem" } }}
           >
             Campaign created successfully!
           </Alert>

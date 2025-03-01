@@ -2,21 +2,20 @@ import { useState, useEffect } from "react";
 import {
   Typography,
   Box,
+  TextField,
+  Button,
+  Grid,
   Card,
   CardContent,
   CardHeader,
-  Grid,
   LinearProgress,
   Container,
-  Button,
   CircularProgress,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  TextField,
   FormControl,
-  InputLabel,
   Select,
   MenuItem,
 } from "@mui/material";
@@ -25,20 +24,24 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 const theme = createTheme({
   palette: {
     primary: {
-      main: "#FF9933", // Saffron
+      main: "#216eb6", // Logo-matching blue
     },
     secondary: {
-      main: "#138808", // Green
+      main: "#42A5F5", // Lighter blue
     },
     background: {
-      default: "#FFF4E6", // Light saffron tint
+      default: "#E3F2FD", // Very light blue
     },
-    lightOrange: {
-      main: "#FFE5B4", // Light orange for timer heading
+    lightBlue: {
+      main: "#BBDEFB", // Light blue for accents
+    },
+    text: {
+      primary: "#263238", // Darker gray for contrast
+      secondary: "#546E7A", // Softer gray for secondary text
     },
   },
   typography: {
-    fontFamily: "'Poppins', sans-serif", // Modern font
+    fontFamily: "'Poppins', sans-serif",
   },
   breakpoints: {
     values: {
@@ -56,12 +59,12 @@ const OngoingCampaigns = () => {
   const [timers, setTimers] = useState({});
   const [error, setError] = useState("");
   const [userDetails, setUserDetails] = useState({ referralCode: "" });
-  const [isLoading, setIsLoading] = useState(false); // Add loading state
-  const [extendConfirmOpen, setExtendConfirmOpen] = useState(false); // For confirmation dialog
-  const [extendDurationOpen, setExtendDurationOpen] = useState(false); // For duration input dialog
-  const [selectedCampaignId, setSelectedCampaignId] = useState(null); // Track campaign to extend
-  const [duration, setDuration] = useState(""); // Duration input
-  const [durationUnit, setDurationUnit] = useState("days"); // Hours or days
+  const [isLoading, setIsLoading] = useState(false);
+  const [extendConfirmOpen, setExtendConfirmOpen] = useState(false);
+  const [extendDurationOpen, setExtendDurationOpen] = useState(false);
+  const [selectedCampaignId, setSelectedCampaignId] = useState(null);
+  const [duration, setDuration] = useState("");
+  const [durationUnit, setDurationUnit] = useState("days");
 
   useEffect(() => {
     const fetchUserDetails = async () => {
@@ -82,12 +85,7 @@ const OngoingCampaigns = () => {
         const data = await response.json();
         if (response.ok) {
           const { referralCode } = data.user;
-          if (!referralCode || typeof referralCode !== "string" || !/^[A-Za-z0-9]+$/.test(referralCode)) {
-            console.error("Invalid referral code from backend:", referralCode);
-            setUserDetails({ referralCode: "" });
-          } else {
-            setUserDetails({ referralCode });
-          }
+          setUserDetails({ referralCode: /^[A-Za-z0-9]+$/.test(referralCode) ? referralCode : "" });
         } else {
           setError(data.msg || "Failed to fetch user details");
         }
@@ -132,7 +130,6 @@ const OngoingCampaigns = () => {
     fetchCampaigns();
   }, []);
 
-  // Update timers every second
   useEffect(() => {
     const interval = setInterval(() => {
       const newTimers = {};
@@ -142,15 +139,15 @@ const OngoingCampaigns = () => {
         const timeLeft = endDate - now;
 
         if (timeLeft > 0) {
-          const totalTime = endDate - new Date(campaign.startDate); // Total campaign duration
-          const progress = ((totalTime - timeLeft) / totalTime) * 100; // Time progress as percentage
+          const totalTime = endDate - new Date(campaign.startDate);
+          const progress = ((totalTime - timeLeft) / totalTime) * 100;
           const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
           const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
           const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
           const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
           newTimers[campaign._id] = {
             time: `${days}d ${hours}h ${minutes}m ${seconds}s`,
-            progress: Math.min(progress, 100), // Ensure progress doesn't exceed 100%
+            progress: Math.min(progress, 100),
           };
         } else {
           newTimers[campaign._id] = { time: "Ended", progress: 100 };
@@ -159,18 +156,13 @@ const OngoingCampaigns = () => {
       setTimers(newTimers);
     }, 1000);
 
-    return () => clearInterval(interval); // Cleanup on unmount
+    return () => clearInterval(interval);
   }, [campaigns]);
 
-  // Pretty timer display with orange theme
   const formatPrettyTimer = (timeStr) => {
     if (timeStr === "Ended") {
       return (
-        <Typography
-          variant="body2"
-          color="error.main"
-          sx={{ fontWeight: 600, textShadow: "0.5px 0.5px 1px rgba(0,0,0,0.1)" }}
-        >
+        <Typography variant="body2" color="error.main" sx={{ fontWeight: 600, textShadow: "0.5px 0.5px 1px rgba(0,0,0,0.1)" }}>
           Campaign Ended
         </Typography>
       );
@@ -180,29 +172,17 @@ const OngoingCampaigns = () => {
       <Typography
         variant="body2"
         color="primary.main"
-        sx={{
-          fontWeight: 500,
-          fontStyle: "italic",
-          textShadow: "0.5px 0.5px 1px rgba(0,0,0,0.1)",
-          display: "inline-flex",
-          gap: 1,
-          alignItems: "center",
-        }}
+        sx={{ fontWeight: 500, fontStyle: "italic", textShadow: "0.5px 0.5px 1px rgba(0,0,0,0.1)", display: "inline-flex", gap: 1, alignItems: "center" }}
       >
         {parts.map((part, index) => (
-          <span key={index} style={{ marginRight: index < parts.length - 1 ? "4px" : 0 }}>
-            {part}
-          </span>
+          <span key={index} style={{ marginRight: index < parts.length - 1 ? "4px" : 0 }}>{part}</span>
         ))}
         <CircularProgress
           variant="determinate"
           value={timers[campaigns.find(c => c._id === Object.keys(timers)[0])?.progress] || 0}
           size={20}
           thickness={6}
-          sx={{
-            color: "primary.main",
-            ml: 1,
-          }}
+          sx={{ color: "primary.main", ml: 1 }}
         />
       </Typography>
     );
@@ -308,24 +288,14 @@ const OngoingCampaigns = () => {
           {error && (
             <Typography
               color="error"
-              sx={{
-                mb: { xs: 2, md: 4 },
-                textAlign: "center",
-                fontSize: { xs: "0.9rem", md: "1.1rem" },
-                fontWeight: 500,
-              }}
+              sx={{ mb: { xs: 2, md: 4 }, textAlign: "center", fontSize: { xs: "0.9rem", md: "1.1rem" }, fontWeight: 500 }}
             >
               {error}
             </Typography>
           )}
           {campaigns.length === 0 && !error && (
             <Typography
-              sx={{
-                textAlign: "center",
-                fontSize: { xs: "0.9rem", md: "1.1rem" },
-                color: "text.secondary",
-                mb: { xs: 4, md: 6 },
-              }}
+              sx={{ textAlign: "center", fontSize: { xs: "0.9rem", md: "1.1rem" }, color: "text.secondary", mb: { xs: 4, md: 6 } }}
             >
               No ongoing campaigns found.
             </Typography>
@@ -341,17 +311,14 @@ const OngoingCampaigns = () => {
                       bgcolor: "white",
                       border: `2px solid ${theme.palette.primary.main}`,
                       transition: "transform 0.3s ease, box-shadow 0.3s ease",
-                      "&:hover": {
-                        transform: "translateY(-8px)",
-                        boxShadow: "0px 12px 35px rgba(0, 0, 0, 0.25)",
-                      },
-                      mb: { xs: 4, md: 6 }, // Add bottom space, responsive
+                      "&:hover": { transform: "translateY(-8px)", boxShadow: "0px 12px 35px rgba(0, 0, 0, 0.25)" },
+                      mb: { xs: 4, md: 6 },
                     }}
                   >
                     <CardHeader
                       title={formatPrettyTimer(timers[campaign._id]?.time || "Calculating...")}
                       sx={{
-                        bgcolor: theme.palette.lightOrange.main,
+                        bgcolor: theme.palette.lightBlue.main,
                         color: "primary.main",
                         borderRadius: "3px 3px 0 0",
                         p: { xs: 1, md: 2 },
@@ -367,10 +334,7 @@ const OngoingCampaigns = () => {
                         height: 8,
                         borderRadius: "0 0 3px 3px",
                         bgcolor: "grey.300",
-                        "& .MuiLinearProgress-bar": {
-                          bgcolor: theme.palette.primary.main,
-                          borderRadius: "0 0 3px 3px",
-                        },
+                        "& .MuiLinearProgress-bar": { bgcolor: theme.palette.primary.main, borderRadius: "0 0 3px 3px" },
                       }}
                     />
                     <CardContent sx={{ p: { xs: 2, md: 4 }, pt: { xs: 1, md: 2 } }}>
@@ -393,7 +357,6 @@ const OngoingCampaigns = () => {
                           mb: { xs: 2, md: 3 },
                           lineHeight: 1.6,
                           fontStyle: "italic",
-                          color: "text.secondary",
                           fontSize: { xs: "0.9rem", md: "1rem" },
                         }}
                       >
@@ -401,21 +364,13 @@ const OngoingCampaigns = () => {
                       </Typography>
                       <Typography
                         variant="body1"
-                        sx={{
-                          mb: { xs: 1, md: 2 },
-                          fontWeight: 500,
-                          fontSize: { xs: "0.9rem", md: "1rem" },
-                        }}
+                        sx={{ mb: { xs: 1, md: 2 }, fontWeight: 500, fontSize: { xs: "0.9rem", md: "1rem" } }}
                       >
                         Goal: ₹{campaign.goalAmount.toLocaleString()}
                       </Typography>
                       <Typography
                         variant="body1"
-                        sx={{
-                          mb: { xs: 2, md: 3 },
-                          fontWeight: 500,
-                          fontSize: { xs: "0.9rem", md: "1rem" },
-                        }}
+                        sx={{ mb: { xs: 2, md: 3 }, fontWeight: 500, fontSize: { xs: "0.9rem", md: "1rem" } }}
                       >
                         Raised: ₹{campaign.raisedAmount.toLocaleString()}
                       </Typography>
@@ -455,10 +410,7 @@ const OngoingCampaigns = () => {
                             fontWeight: "bold",
                             borderRadius: 2,
                             bgcolor: "secondary.main",
-                            "&:hover": {
-                              bgcolor: "secondary.dark",
-                              transform: "scale(1.03)",
-                            },
+                            "&:hover": { bgcolor: "secondary.dark", transform: "scale(1.03)" },
                             transition: "all 0.3s ease",
                             boxShadow: "0px 4px 10px rgba(0,0,0,0.2)",
                           }}
@@ -473,9 +425,8 @@ const OngoingCampaigns = () => {
             </Grid>
           )}
 
-          {/* Confirmation Dialog for Extending Campaign */}
           <Dialog open={extendConfirmOpen} onClose={handleCancelExtend} maxWidth="xs" fullWidth>
-            <DialogTitle sx={{ bgcolor: "primary.main", color: "white", textAlign: "center", p: 1,mb:2 }}>
+            <DialogTitle sx={{ bgcolor: "primary.main", color: "white", textAlign: "center", p: 1, mb: 2 }}>
               Confirm Extension
             </DialogTitle>
             <DialogContent sx={{ p: 3 }}>
@@ -492,7 +443,7 @@ const OngoingCampaigns = () => {
                   borderRadius: 2,
                   py: 1,
                   fontWeight: "bold",
-                  "&:hover": { bgcolor: "rgba(255,153,51,0.1)" },
+                  "&:hover": { bgcolor: "rgba(33,110,182,0.1)" },
                   mr: 2,
                 }}
               >
@@ -507,7 +458,7 @@ const OngoingCampaigns = () => {
                   borderRadius: 2,
                   py: 1,
                   fontWeight: "bold",
-                  "&:hover": { bgcolor: "primary.dark", transform: "scale(1.03)" },
+                  "&:hover": { bgcolor: "#1E5FA4", transform: "scale(1.03)" },
                   transition: "all 0.3s ease",
                 }}
               >
@@ -516,9 +467,8 @@ const OngoingCampaigns = () => {
             </DialogActions>
           </Dialog>
 
-          {/* Duration Input Dialog for Extending Campaign */}
           <Dialog open={extendDurationOpen} onClose={handleCancelDuration} maxWidth="xs" fullWidth>
-            <DialogTitle sx={{ bgcolor: "primary.main", color: "white", textAlign: "center", p: 1,mb:4 }}>
+            <DialogTitle sx={{ bgcolor: "primary.main", color: "white", textAlign: "center", p: 1, mb: 4 }}>
               Extend Campaign Duration
             </DialogTitle>
             <DialogContent sx={{ p: 2 }}>
@@ -576,7 +526,7 @@ const OngoingCampaigns = () => {
                   borderRadius: 2,
                   py: 1,
                   fontWeight: "bold",
-                  "&:hover": { bgcolor: "rgba(255,153,51,0.1)" },
+                  "&:hover": { bgcolor: "rgba(33,110,182,0.1)" },
                   mr: 2,
                 }}
               >
@@ -591,7 +541,7 @@ const OngoingCampaigns = () => {
                   borderRadius: 2,
                   py: 1,
                   fontWeight: "bold",
-                  "&:hover": { bgcolor: "primary.dark", transform: "scale(1.03)" },
+                  "&:hover": { bgcolor: "#1E5FA4", transform: "scale(1.03)" },
                   transition: "all 0.3s ease",
                 }}
               >
