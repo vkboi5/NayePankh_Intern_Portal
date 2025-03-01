@@ -46,7 +46,7 @@ import { useNavigate } from "react-router-dom";
 import Transactions from "./Transactions";
 import OngoingCampaigns from "./OngoingCampaigns";
 import CreateCampaign from "./StartHere";
-import bgImg from "../../assets/bgimg.jpg"; // Ensure this path is correct
+import bgImg from "../../assets/welcome-img.webp";
 import Feedback from "./Feedback";
 import LearningModules from "./LearningModules";
 import FAQ from "./FAQ";
