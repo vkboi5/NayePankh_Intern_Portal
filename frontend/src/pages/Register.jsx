@@ -11,7 +11,7 @@ import {
   Container,
 } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import registerImage from "../assets/register-bgm.jpg"; // Replace with your image path
+import registerImage from "../assets/registerBgm.jpg"; // Replace with your image path
 
 const theme = createTheme({
   palette: {

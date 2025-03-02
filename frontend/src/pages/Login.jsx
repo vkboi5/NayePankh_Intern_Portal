@@ -11,7 +11,7 @@ import {
   Container,
 } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import loginImage from "../assets/login-bgm.jpg"; // Replace with your image path
+import loginImage from "../assets/loginBgm.jpg"; // Replace with your image path
 
 const theme = createTheme({
   palette: {
