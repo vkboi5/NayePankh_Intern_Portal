@@ -11,18 +11,22 @@ import {
   Container,
 } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import registerImage from "../assets/image1.png"; // Replace with your image path
+import registerImage from "../assets/Register-bgm.jpg"; // Replace with your image path
 
 const theme = createTheme({
   palette: {
     primary: {
-      main: "#FF9933", // Saffron
+      main: "#216eb6", // Logo-matching blue
     },
     secondary: {
-      main: "#138808", // Green
+      main: "#42A5F5", // Lighter blue
     },
     background: {
-      default: "#FFF4E6", // Light saffron tint
+      default: "#E3F2FD", // Very light blue background
+    },
+    text: {
+      primary: "#263238", // Darker gray
+      secondary: "#546E7A", // Softer gray
     },
   },
   typography: {
@@ -98,14 +102,31 @@ const Register = () => {
           >
             {/* Image Section (integrated within the card, slightly wider) */}
             <Box
-              sx={{
-                flex: { md: 1.2 }, // Slightly wider (1.2 instead of 1) on desktop
-                backgroundImage: `url(${registerImage})`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-                minHeight: { xs: 150, sm: 400 }, // Taller on desktop, smaller on mobile
-                display: { xs: "none", md: "block" }, // Hide on mobile, show on desktop
-              }}
+            sx={{
+                flex: { xs: 1, md: 1.2 }, // Slightly wider on desktop
+                position: "relative",
+                display: "block", // Show on all screen sizes
+                overflow: "hidden",
+                borderRight: { xs: "none", md: "1px solid #e0e0e0" },
+                minHeight: { xs: 300, sm: 500 }, // Taller on desktop, but still visible on mobile
+                "&::before": {
+                content: '""',
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: `url(${registerImage})`,
+                backgroundSize: { xs: "cover", sm: "cover" },
+                backgroundPosition: "center 80%",
+                backgroundRepeat: "no-repeat",
+                transition: "transform 0.3s ease-in-out",
+                },
+                bgcolor: "#216eb6", // Matching background color for edges
+                "&:hover::before": {
+                transform: "scale(1.05)",
+                },
+            }}
             />
             {/* Form Section */}
             <Box
@@ -118,8 +139,8 @@ const Register = () => {
                 sx={{
                   p: { xs: 2, sm: 3 },
                   textAlign: "center",
-                  bgcolor: "primary.main", // Saffron header for modern look
-                  borderRadius:10,
+                  bgcolor: "primary.main", // Primary blue header
+                  borderRadius: 10,
                 }}
               >
                 <Typography
@@ -239,11 +260,11 @@ const Register = () => {
                           fontSize: { xs: "1rem", sm: "1.2rem" },
                           fontWeight: 700,
                           borderRadius: 2,
-                          bgcolor: "secondary.main", // Green for a unique touch
-                          "&:hover": { bgcolor: "secondary.dark" },
+                          bgcolor: "secondary.main", // Secondary blue for button
+                          "&:hover": { bgcolor: "#1E88E5" }, // Darker blue on hover
                           boxShadow: "0px 4px 10px rgba(0,0,0,0.2)",
                           transition: "all 0.3s ease",
-                          color:"white",
+                          color: "white",
                         }}
                       >
                         Sign Up
@@ -256,6 +277,8 @@ const Register = () => {
                         sx={{
                           color: "primary.main",
                           fontSize: { xs: "0.8rem", sm: "1rem" },
+                          textDecoration: "underline",
+                          "&:hover": { color: "secondary.main" },
                         }}
                       >
                         Already have an account? Login

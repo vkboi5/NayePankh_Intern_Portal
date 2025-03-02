@@ -11,18 +11,22 @@ import {
   Container,
 } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import loginImage from "../assets/image2.png"; // Replace with your image path
+import loginImage from "../assets/login-bgm.jpg"; // Replace with your image path
 
 const theme = createTheme({
   palette: {
     primary: {
-      main: "#FF9933", // Saffron
+      main: "#216eb6", // Logo-matching blue
     },
     secondary: {
-      main: "#138808", // Green
+      main: "#42A5F5", // Lighter blue
     },
     background: {
-      default: "#FFF4E6", // Light saffron tint
+      default: "#E3F2FD", // Very light blue background
+    },
+    text: {
+      primary: "#263238", // Darker gray
+      secondary: "#546E7A", // Softer gray
     },
   },
   typography: {
@@ -53,11 +57,14 @@ const Login = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("https://naye-pankh-intern-portal-ox93.vercel.app/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
+      const response = await fetch(
+        "https://naye-pankh-intern-portal-ox93.vercel.app/api/auth/login",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        }
+      );
       const data = await response.json();
       console.log(data.token);
       if (response.ok) {
@@ -90,21 +97,30 @@ const Login = () => {
               width: "100%",
               boxShadow: "0px 8px 25px rgba(0,0,0,0.15)", // Enhanced shadow
               borderRadius: 3, // More rounded corners
-              overflow: "hidden", // Ensure image doesn’t overflow
+              overflow: "hidden", // Ensure image doesn't overflow
               display: "flex",
               flexDirection: { xs: "column", md: "row" }, // Stack on mobile, side-by-side on desktop
+              mx: "auto", // Center the card
             }}
           >
             {/* Image Section (integrated within the card, slightly wider) */}
             <Box
-              sx={{
-                flex: { md: 1.2 }, // Slightly wider (1.2 instead of 1) on desktop
-                backgroundImage: `url(${loginImage})`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-                minHeight: { xs: 150, sm: 400 }, // Taller on desktop, smaller on mobile
-                display: { xs: "none", md: "block" }, // Hide on mobile, show on desktop
-              }}
+            sx={{
+            flex: { md: 1.2 }, // Slightly wider (1.2 instead of 1) on desktop
+            backgroundImage: { 
+                xs: `linear-gradient(rgba(245, 249, 255, 0.2), rgba(245, 249, 255, 0.2)), url(${loginImage})`,
+                sm: `url(${loginImage})`
+            },
+            backgroundSize: "cover", // Use cover on all devices for better fill
+            backgroundPosition: { xs: "center 50%", md: "center" }, // Adjusted position to better show the little girl
+            backgroundRepeat: "no-repeat",
+            backgroundColor: "#f5f9ff", // Light background color to complement the image
+            minHeight: { xs: 260, sm: 400 }, // Slightly increased height on mobile
+            display: "block", // Show on all devices
+            borderBottom: { xs: "4px solid #216eb6", md: "none" }, // Add border on mobile for separation
+            transition: "background-position 0.3s ease", // Smooth transition for position changes
+            backgroundAttachment: { xs: "local", sm: "scroll" }, // Helps with mobile display
+            }}
             />
             {/* Form Section */}
             <Box
@@ -117,8 +133,9 @@ const Login = () => {
                 sx={{
                   p: { xs: 2, sm: 3 },
                   textAlign: "center",
-                  bgcolor: "primary.main", // Saffron header for modern look
-                  borderRadius:10,
+                  bgcolor: "primary.main", // Primary blue header
+                  borderRadius: 10,
+                  mb: { xs: 2, sm: 3 }, // Added margin for better spacing
                 }}
               >
                 <Typography
@@ -151,13 +168,17 @@ const Login = () => {
                         sx={{
                           "& .MuiOutlinedInput-root": {
                             "&:hover fieldset": { borderColor: "primary.main" },
-                            "&.Mui-focused fieldset": { borderColor: "primary.main" },
+                            "&.Mui-focused fieldset": {
+                              borderColor: "primary.main",
+                            },
                           },
                           "& .MuiInputLabel-root": {
                             color: "primary.main",
                             fontSize: { xs: "0.9rem", sm: "1rem" },
                           },
-                          "& .MuiInputLabel-root.Mui-focused": { color: "primary.main" },
+                          "& .MuiInputLabel-root.Mui-focused": {
+                            color: "primary.main",
+                          },
                         }}
                       />
                     </Grid>
@@ -174,13 +195,17 @@ const Login = () => {
                         sx={{
                           "& .MuiOutlinedInput-root": {
                             "&:hover fieldset": { borderColor: "primary.main" },
-                            "&.Mui-focused fieldset": { borderColor: "primary.main" },
+                            "&.Mui-focused fieldset": {
+                              borderColor: "primary.main",
+                            },
                           },
                           "& .MuiInputLabel-root": {
                             color: "primary.main",
                             fontSize: { xs: "0.9rem", sm: "1rem" },
                           },
-                          "& .MuiInputLabel-root.Mui-focused": { color: "primary.main" },
+                          "& .MuiInputLabel-root.Mui-focused": {
+                            color: "primary.main",
+                          },
                         }}
                       />
                     </Grid>
@@ -195,11 +220,11 @@ const Login = () => {
                           fontSize: { xs: "1rem", sm: "1.2rem" },
                           fontWeight: 700,
                           borderRadius: 2,
-                          bgcolor: "secondary.main", // Green for a unique touch
-                          "&:hover": { bgcolor: "secondary.dark" },
+                          bgcolor: "secondary.main", // Secondary blue for button
+                          "&:hover": { bgcolor: "#1E88E5" }, // Darker blue on hover
                           boxShadow: "0px 4px 10px rgba(0,0,0,0.2)",
                           transition: "all 0.3s ease",
-                          color:"white",
+                          color: "white",
                         }}
                       >
                         Sign In
@@ -212,6 +237,8 @@ const Login = () => {
                         sx={{
                           color: "primary.main",
                           fontSize: { xs: "0.8rem", sm: "1rem" },
+                          textDecoration: "underline",
+                          "&:hover": { color: "secondary.main" },
                         }}
                       >
                         New User? Register Now!
