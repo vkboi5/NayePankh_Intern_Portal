@@ -371,21 +371,12 @@ const DashboardPage = () => {
   const getCircularProgress = (raised, goal) => {
     const progress = Math.min((raised / goal) * 100, 100) || 0;
     return (
-      <Box sx={{ position: "relative", display: "inline-flex", mb: 2 }}>
+      <Box
+        sx={{ position: "relative", display: "inline-flex", mb: 2, mx: "auto" }}
+      >
         <CircularProgress
           variant="determinate"
-          value={progress}
-          size={80}
-          thickness={5}
-          sx={{
-            color: "secondary.main",
-            "& .MuiCircularProgress-circle": { strokeLinecap: "round" },
-          }}
-        />
-        <CircularProgress
-          variant="determinate"
-          value={100}
-          size={80}
+          size={{ xs: 70, sm: 80 }}
           thickness={5}
           sx={{
             position: "absolute",
@@ -618,7 +609,7 @@ const DashboardPage = () => {
           component="main"
           sx={{
             flexGrow: 1,
-            p: { xs: 3, sm: 4 },
+            p: { xs: 2, sm: 4 },
             width: { sm: `calc(100% - ${drawerWidth}px)` },
             overflow: "auto",
             mt: { xs: 8, sm: 10 },
@@ -641,7 +632,8 @@ const DashboardPage = () => {
               aria-label="breadcrumb"
               sx={{
                 bgcolor: "white",
-                p: 2,
+                p: { xs: 1.5, sm: 2 },
+                fontSize: { xs: "0.85rem", sm: "1rem" },
                 borderRadius: 2,
                 boxShadow: "0px 2px 10px rgba(0,0,0,0.05)",
               }}
@@ -669,8 +661,7 @@ const DashboardPage = () => {
             <Box>
               <Card
                 sx={{
-                  position: "relative",
-                  minHeight: { xs: 320, sm: 480 },
+                  minHeight: { xs: 380, sm: 480 },
                   backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(${bgImg})`,
                   backgroundSize: "cover",
                   backgroundPosition: "center",
@@ -735,10 +726,26 @@ const DashboardPage = () => {
                     }}
                   >
                     Your Referral Code:
+                  </Typography>
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      color: "white",
+                      fontWeight: 700,
+                      fontSize: { xs: "1rem", sm: "1.3rem" },
+                      mt: { xs: 2, sm: 1 },
+                      mb: 3,
+                      textAlign: "center",
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      flexWrap: "wrap",
+                    }}
+                  >
                     <strong
                       style={{
                         color: theme.palette.referralPink.main,
-                        marginLeft: "12px",
+                        marginLeft: { xs: "0", sm: "12px" },
                         padding: "8px 16px",
                         border: `2px solid ${theme.palette.referralPink.main}`,
                         borderRadius: "8px",
@@ -746,6 +753,8 @@ const DashboardPage = () => {
                         transition: "all 0.3s ease",
                         cursor: "pointer",
                         fontWeight: 600,
+                        display: "inline-block",
+                        marginTop: "8px",
                       }}
                       onMouseEnter={(e) => {
                         e.target.style.background = "rgba(211,47,47,0.2)";
@@ -763,9 +772,10 @@ const DashboardPage = () => {
                   <Box
                     sx={{
                       display: "flex",
-                      gap: { xs: 1.5, sm: 2 },
+                      gap: { xs: 2, sm: 2 },
                       flexWrap: "wrap",
                       justifyContent: "center",
+                      mt: { xs: 3, sm: 2 },
                     }}
                   >
                     <Button
@@ -780,9 +790,10 @@ const DashboardPage = () => {
                           boxShadow: "0px 6px 20px rgba(0,0,0,0.2)",
                         },
                         borderRadius: 25,
-                        py: 1.2,
-                        px: 3,
-                        fontSize: { xs: "0.9rem", sm: "1rem" },
+                        py: { xs: 1, sm: 1.2 },
+                        px: { xs: 2, sm: 3 },
+                        width: { xs: "100%", sm: "auto" },
+                        mb: { xs: 1, sm: 0 },
                         fontWeight: "bold",
                         boxShadow: "0px 4px 15px rgba(0,0,0,0.1)",
                         transition: "all 0.3s ease",
@@ -812,8 +823,9 @@ const DashboardPage = () => {
                           boxShadow: "0px 6px 20px rgba(0,0,0,0.2)",
                         },
                         borderRadius: 25,
-                        py: 1.2,
-                        px: 3,
+                        py: { xs: 1, sm: 1.2 },
+                        px: { xs: 2, sm: 3 },
+                        width: { xs: "100%", sm: "auto" },
                         fontSize: { xs: "0.9rem", sm: "1rem" },
                         fontWeight: "bold",
                         boxShadow: "0px 4px 15px rgba(0,0,0,0.1)",
@@ -828,7 +840,7 @@ const DashboardPage = () => {
               </Card>
 
               <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                <Grid container spacing={4}>
+                <Grid container spacing={{ xs: 2, sm: 3, md: 4 }}>
                   <Grid item xs={12} md={6}>
                     <Card
                       sx={{
@@ -1013,7 +1025,7 @@ const DashboardPage = () => {
                     >
                       Your Campaigns
                     </Typography>
-                    <Grid container spacing={4}>
+                    <Grid container spacing={{ xs: 2, sm: 3, md: 4 }}>
                       {campaigns.map((campaign) => (
                         <Grid item xs={12} sm={6} md={4} key={campaign._id}>
                           <Card
@@ -1029,7 +1041,14 @@ const DashboardPage = () => {
                               border: "1px solid rgba(33,110,182,0.1)",
                             }}
                           >
-                            <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+                            <CardContent
+                              sx={{
+                                p: { xs: 2, sm: 3 },
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                              }}
+                            >
                               <Typography
                                 variant="h6"
                                 sx={{
@@ -1109,8 +1128,9 @@ const DashboardPage = () => {
                                     color: "white",
                                     "&:hover": { bgcolor: "#20B858" },
                                     borderRadius: 20,
-                                    py: 1,
-                                    px: 3,
+                                    py: { xs: 0.8, sm: 1 },
+                                    px: { xs: 2, sm: 3 },
+                                    width: { xs: "100%", sm: "auto" },
                                     fontSize: { xs: "0.8rem", sm: "0.9rem" },
                                     fontWeight: "bold",
                                     boxShadow: "0px 4px 15px rgba(0,0,0,0.1)",

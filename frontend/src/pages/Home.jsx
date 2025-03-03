@@ -70,10 +70,10 @@ function InternsHome() {
 
         {/* Hero Section */}
         <Box
-          sx={{
-            position: "relative",
-            height: "100vh", // Full viewport height
-            width: "100vw", // Full viewport width
+        sx={{
+        position: "relative",
+        height: "100vh", // Full viewport height
+        width: "100%", // Changed from 100vw to avoid horizontal overflow
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -94,85 +94,100 @@ function InternsHome() {
           <Container
             maxWidth="md"
             sx={{
-              position: "relative",
-              zIndex: 2,
-              textAlign: "center",
-              color: "#FFFFFF",
+                position: "relative",
+                zIndex: 2,
+                textAlign: "center",
+                color: "#FFFFFF",
+                px: { xs: 2, sm: 3, md: 4 }, // Responsive padding
             }}
           >
             <Box
-              sx={{
-                display: "flex",
-                justifyContent: "center",
-                mb: 3,
-              }}
+            sx={{
+            display: "flex",
+            justifyContent: "center",
+            mb: { xs: 2, sm: 2.5, md: 3 }, // Responsive margin
+            }}
             >
-              <Box sx={{
-                backgroundColor: "#FFFFFF",
-                padding: 1,
-                width: "200px",
-                height: "170px",
-                borderRadius: 2,
-              }}>
+            <Box sx={{
+            backgroundColor: "#FFFFFF",
+            padding: { xs: 0.75, sm: 1, md: 1.5 }, // Responsive padding
+            width: { xs: "150px", sm: "180px", md: "200px" }, // Responsive width
+            height: { xs: "130px", sm: "150px", md: "170px" }, // Responsive height
+            borderRadius: 2,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            }}>
                 <img
-                  src={mainLogo}
-                  alt="NayePankh Logo"
-                  style={{ height: "150px", width: "150px" }}
+                    src={mainLogo}
+                    alt="NayePankh Logo"
+                    style={{ 
+                    maxHeight: "90%", 
+                    maxWidth: "90%", 
+                    width: "auto", 
+                    height: "auto",
+                    objectFit: "contain" 
+                    }}
                 />
               </Box>
             </Box>
             <Typography
-              variant="h1"
-              component="h1"
-              sx={{
-                fontSize: { xs: "2rem", sm: "3rem", md: "4rem" },
+                variant="h1"
+                component="h1"
+                sx={{
+                fontSize: { xs: "1.75rem", sm: "2.5rem", md: "3.5rem", lg: "4rem" }, // More granular font scaling
                 textShadow: "4px 4px 12px rgba(0,0,0,0.7)",
-                mb: 2,
-                lineHeight: 1.2,
+                mb: { xs: 1.5, sm: 2, md: 2.5 }, // Responsive margin
+                lineHeight: { xs: 1.1, sm: 1.2 }, // Adjusted line height for small screens
+                px: { xs: 1, sm: 2, md: 0 }, // Add padding on smaller screens
                 animation: "fadeIn 2s ease-in-out",
                 "@keyframes fadeIn": {
-                  "0%": { opacity: 0, transform: "translateY(30px)" },
-                  "100%": { opacity: 1, transform: "translateY(0)" },
+                    "0%": { opacity: 0, transform: "translateY(30px)" },
+                    "100%": { opacity: 1, transform: "translateY(0)" },
                 },
-              }}
+                }}
             >
               Welcome to the Interns Portal
             </Typography>
             <Typography
-              variant="h5"
-              component="p"
-              sx={{
-                fontSize: { xs: "1rem", sm: "1.25rem", md: "1.5rem" },
+                variant="h5"
+                component="p"
+                sx={{
+                fontSize: { xs: "0.875rem", sm: "1.125rem", md: "1.25rem", lg: "1.5rem" }, // More granular font scaling
                 fontWeight: 300,
                 maxWidth: "700px",
+                width: "100%", // Ensure it takes full width within constraints
                 mx: "auto",
-                mb: 4,
+                mb: { xs: 3, sm: 3.5, md: 4 }, // Responsive margin
+                px: { xs: 1, sm: 2, md: 2 }, // Add padding on all screens
                 textShadow: "1px 1px 4px rgba(0,0,0,0.5)",
-              }}
+                }}
             >
               Join our team of dedicated interns to empower communities and
               create lasting change with NayePankh Foundation.
             </Typography>
             <Button
-              variant="contained"
-              onClick={handleLoginClick}
-              sx={{
+                variant="contained"
+                onClick={handleLoginClick}
+                size="large" // Default size large for the button
+                sx={{
                 bgcolor: "#F1C40F", // Yellow
                 color: "#34495E",
                 textTransform: "uppercase",
                 fontWeight: "bold",
                 borderRadius: 50,
-                py: 1.5,
-                px: 6,
-                fontSize: { xs: "1rem", md: "1.25rem" },
+                py: { xs: 1, sm: 1.25, md: 1.5 }, // Responsive padding
+                px: { xs: 3, sm: 4, md: 6 }, // Responsive padding
+                fontSize: { xs: "0.875rem", sm: "1rem", md: "1.125rem", lg: "1.25rem" }, // More granular font scaling
                 boxShadow: "0px 6px 20px rgba(0,0,0,0.25)",
                 transition: "all 0.3s ease",
+                minWidth: { xs: '120px', sm: '140px', md: '160px' }, // Ensure minimum width
                 "&:hover": {
-                  bgcolor: "#F39C12",
-                  transform: "scale(1.05)",
-                  boxShadow: "0px 8px 25px rgba(0,0,0,0.3)",
+                    bgcolor: "#F39C12",
+                    transform: "scale(1.05)",
+                    boxShadow: "0px 8px 25px rgba(0,0,0,0.3)",
                 },
-              }}
+                }}
             >
               Login
             </Button>
