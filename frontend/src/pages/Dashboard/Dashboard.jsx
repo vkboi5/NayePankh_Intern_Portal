@@ -614,6 +614,9 @@ const DashboardPage = () => {
             overflow: "auto",
             mt: { xs: 8, sm: 10 },
             bgcolor: "background.default",
+            display: "flex",
+            flexDirection: "column",
+            minHeight: "100vh", // Ensure the main content takes full height
           }}
         >
           {isLoading && (
@@ -1156,6 +1159,30 @@ const DashboardPage = () => {
           {selectedSection === "Learning Modules" && <LearningModules />}
           {selectedSection === "Feedback" && <Feedback />}
           {selectedSection === "FAQ" && <FAQ />}
+
+          {/* Footer Section */}
+          <Box
+            component="footer"
+            sx={{
+              mt: "auto", // Pushes footer to the bottom
+              py: 2,
+              textAlign: "center",
+              bgcolor: "primary.main",
+              color: "white",
+              borderTop: "1px solid rgba(255, 255, 255, 0.2)",
+            }}
+          >
+            <Typography
+              variant="body2"
+              sx={{
+                fontSize: { xs: "0.8rem", sm: "0.9rem" },
+                fontWeight: 400,
+                letterSpacing: 0.5,
+              }}
+            >
+              © {new Date().getFullYear()} NayePankh Foundation. All rights reserved.
+            </Typography>
+          </Box>
         </Box>
 
         <Snackbar

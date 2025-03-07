@@ -21,10 +21,10 @@ const authMiddleware = async (req, res, next) => {
 };
 
 router.post("/signup", async (req, res) => {
-  const { firstname, lastname, email, password } = req.body;
+  const { firstname, lastname, email, password,internshipPeriod } = req.body;
 
   try {
-    if (!firstname || !lastname || !email || !password) {
+    if (!firstname || !lastname || !email || !password || !internshipPeriod) {
       return res.status(400).json({ msg: "All fields are required" });
     }
 
@@ -51,6 +51,7 @@ router.post("/signup", async (req, res) => {
       email,
       password: hashedPassword,
       referralCode,
+      internshipPeriod,
     });
 
     await user.save();

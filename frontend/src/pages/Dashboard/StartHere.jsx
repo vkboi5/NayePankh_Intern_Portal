@@ -7,11 +7,12 @@ import {
   Grid,
   Card,
   CardContent,
-  Snackbar,
-  Alert,
   Container,
+  CircularProgress, // Added for loader
 } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
+import { ToastContainer, toast } from "react-toastify"; // Added for toast
+import "react-toastify/dist/ReactToastify.css"; // Toastify CSS
 
 const theme = createTheme({
   palette: {
@@ -52,7 +53,6 @@ const CreateCampaign = () => {
     endDate: "",
   });
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -72,26 +72,46 @@ const CreateCampaign = () => {
     e.preventDefault();
     const token = localStorage.getItem("token");
     if (!token) {
-      setError("Please log in to create a campaign");
+      toast.error("Please log in to create a campaign", {
+        position: "top-right",
+        autoClose: 2000,
+        onClose: () => setIsLoading(false),
+      });
+      setIsLoading(false);
       return;
     }
 
     const start = new Date(formData.startDate);
     const end = new Date(formData.endDate);
     if (!formData.title || !formData.description || !formData.goalAmount || !formData.startDate || !formData.endDate) {
-      setError("All fields are required");
+      toast.error("All fields are required", {
+        position: "top-right",
+        autoClose: 2000,
+        onClose: () => setIsLoading(false),
+      });
+      setIsLoading(false);
       return;
     }
     if (isNaN(start) || isNaN(end) || start >= end) {
-      setError("End date must be after start date");
+      toast.error("End date must be after start date", {
+        position: "top-right",
+        autoClose: 2000,
+        onClose: () => setIsLoading(false),
+      });
+      setIsLoading(false);
       return;
     }
     if (parseFloat(formData.goalAmount) <= 0) {
-      setError("Goal amount must be greater than 0");
+      toast.error("Goal amount must be greater than 0", {
+        position: "top-right",
+        autoClose: 2000,
+        onClose: () => setIsLoading(false),
+      });
+      setIsLoading(false);
       return;
     }
 
-    setIsLoading(true);
+    setIsLoading(true); // Show loader
     try {
       const response = await fetch("https://naye-pankh-intern-portal-ox93.vercel.app/api/campaign", {
         method: "POST",
@@ -111,22 +131,33 @@ const CreateCampaign = () => {
       if (response.ok) {
         console.log("Campaign created:", data.campaign);
         setFormData({ title: "", description: "", goalAmount: "", startDate: "", endDate: "" });
-        setError("");
-        setSuccess(true);
+        toast.success("Campaign created successfully!", {
+          position: "top-right",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          theme: "colored",
+          onClose: () => {
+            setIsLoading(false); // Stop loader after toast closes
+          },
+        });
       } else {
-        setError(data.msg || "Failed to create campaign");
-        console.error(data.msg);
+        toast.error(data.msg || "Failed to create campaign", {
+          position: "top-right",
+          autoClose: 2000,
+          onClose: () => setIsLoading(false),
+        });
       }
     } catch (error) {
-      setError("Error creating campaign");
       console.error("Error creating campaign:", error);
-    } finally {
-      setIsLoading(false);
+      toast.error("An error occurred. Please try again.", {
+        position: "top-right",
+        autoClose: 2000,
+        onClose: () => setIsLoading(false),
+      });
     }
-  };
-
-  const handleCloseSnackbar = () => {
-    setSuccess(false);
   };
 
   return (
@@ -263,7 +294,6 @@ const CreateCampaign = () => {
                     <Button
                       fullWidth
                       variant="contained"
-                      color="primary"
                       type="submit"
                       disabled={isLoading}
                       sx={{
@@ -273,9 +303,24 @@ const CreateCampaign = () => {
                         borderRadius: 2,
                         bgcolor: "primary.main",
                         "&:hover": { bgcolor: "#1E5FA4" },
+                        position: "relative",
                       }}
                     >
-                      {isLoading ? "Creating..." : "Create Campaign"}
+                      {isLoading ? (
+                        <CircularProgress
+                          size={24}
+                          sx={{
+                            color: "white",
+                            position: "absolute",
+                            top: "50%",
+                            left: "50%",
+                            marginTop: "-12px",
+                            marginLeft: "-12px",
+                          }}
+                        />
+                      ) : (
+                        "Create Campaign"
+                      )}
                     </Button>
                   </Grid>
                 </Grid>
@@ -283,20 +328,7 @@ const CreateCampaign = () => {
             </CardContent>
           </Card>
         </Container>
-        <Snackbar
-          open={success}
-          autoHideDuration={3000}
-          onClose={handleCloseSnackbar}
-          anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-        >
-          <Alert
-            onClose={handleCloseSnackbar}
-            severity="success"
-            sx={{ width: "100%", fontSize: { xs: "0.8rem", sm: "1rem" } }}
-          >
-            Campaign created successfully!
-          </Alert>
-        </Snackbar>
+        <ToastContainer /> {/* Added ToastContainer for notifications */}
       </Box>
     </ThemeProvider>
   );

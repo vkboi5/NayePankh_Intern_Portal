@@ -40,8 +40,18 @@ const userSchema = new mongoose.Schema({
       return Math.random().toString(36).substring(2, 8).toUpperCase();
     },
   },
+  role: {
+    type: String,
+    enum: ["Super Admin", "Admin", "Intern"], // Allowed roles as per requirements
+    default: "Intern", // Default role is Intern
+  },
+  internshipPeriod: {
+    type: String,
+    enum: ["1 week", "2 weeks", "1 month", "3 months", "6 months"],
+    required: true,
+  },
 }, {
-  timestamps: true, 
+  timestamps: true,
 });
 
 const User = mongoose.model("User", userSchema);

@@ -9,8 +9,11 @@ import {
   Link,
   Grid,
   Container,
+  CircularProgress,
 } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import loginImage from "../assets/loginBgm.jpg"; // Replace with your image path
 
 const theme = createTheme({
@@ -48,6 +51,7 @@ const Login = () => {
     email: "",
     password: "",
   });
+  const [loading, setLoading] = useState(false); // Loader state
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -56,6 +60,7 @@ const Login = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setLoading(true); // Show loader at the start
     try {
       const response = await fetch(
         "https://naye-pankh-intern-portal-ox93.vercel.app/api/auth/login",
@@ -69,13 +74,36 @@ const Login = () => {
       console.log(data.token);
       if (response.ok) {
         localStorage.setItem("token", data.token);
-        window.location.href = "/dashboard";
+        toast.success("Successfully logged in!", {
+          position: "top-right",
+          autoClose: 2000, // Toast visible for 2 seconds
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          theme: "colored",
+          onClose: () => {
+            setLoading(false); // Stop loader only after toast closes
+            window.location.href = "/dashboard"; // Redirect after toast
+          }, // Redirect when toast closes
+        });
       } else {
         console.error(data.msg);
+        toast.error(data.msg || "Login failed", {
+          position: "top-right",
+          autoClose: 2000,
+          onClose: () => setLoading(false), // Stop loader after error toast
+        });
       }
     } catch (error) {
       console.error("Login error:", error);
+      toast.error("An error occurred. Please try again.", {
+        position: "top-right",
+        autoClose: 2000,
+        onClose: () => setLoading(false), // Stop loader after error toast
+      });
     }
+    // Note: Removed the `finally` block to control loader via toast `onClose`
   };
 
   return (
@@ -93,39 +121,39 @@ const Login = () => {
         <Container maxWidth="md">
           <Card
             sx={{
-              maxWidth: { xs: 400, sm: 800 }, // Wider on mobile and desktop
+              maxWidth: { xs: 400, sm: 800 },
               width: "100%",
-              boxShadow: "0px 8px 25px rgba(0,0,0,0.15)", // Enhanced shadow
-              borderRadius: 3, // More rounded corners
-              overflow: "hidden", // Ensure image doesn't overflow
+              boxShadow: "0px 8px 25px rgba(0,0,0,0.15)",
+              borderRadius: 3,
+              overflow: "hidden",
               display: "flex",
-              flexDirection: { xs: "column", md: "row" }, // Stack on mobile, side-by-side on desktop
-              mx: "auto", // Center the card
+              flexDirection: { xs: "column", md: "row" },
+              mx: "auto",
             }}
           >
-            {/* Image Section (integrated within the card, slightly wider) */}
+            {/* Image Section */}
             <Box
-            sx={{
-            flex: { md: 1.2 }, // Slightly wider (1.2 instead of 1) on desktop
-            backgroundImage: { 
-                xs: `linear-gradient(rgba(245, 249, 255, 0.2), rgba(245, 249, 255, 0.2)), url(${loginImage})`,
-                sm: `url(${loginImage})`
-            },
-            backgroundSize: "cover", // Use cover on all devices for better fill
-            backgroundPosition: { xs: "center 50%", md: "center" }, // Adjusted position to better show the little girl
-            backgroundRepeat: "no-repeat",
-            backgroundColor: "#f5f9ff", // Light background color to complement the image
-            minHeight: { xs: 260, sm: 400 }, // Slightly increased height on mobile
-            display: "block", // Show on all devices
-            borderBottom: { xs: "4px solid #216eb6", md: "none" }, // Add border on mobile for separation
-            transition: "background-position 0.3s ease", // Smooth transition for position changes
-            backgroundAttachment: { xs: "local", sm: "scroll" }, // Helps with mobile display
-            }}
+              sx={{
+                flex: { md: 1.2 },
+                backgroundImage: {
+                  xs: `linear-gradient(rgba(245, 249, 255, 0.2), rgba(245, 249, 255, 0.2)), url(${loginImage})`,
+                  sm: `url(${loginImage})`,
+                },
+                backgroundSize: "cover",
+                backgroundPosition: { xs: "center 50%", md: "center" },
+                backgroundRepeat: "no-repeat",
+                backgroundColor: "#f5f9ff",
+                minHeight: { xs: 260, sm: 400 },
+                display: "block",
+                borderBottom: { xs: "4px solid #216eb6", md: "none" },
+                transition: "background-position 0.3s ease",
+                backgroundAttachment: { xs: "local", sm: "scroll" },
+              }}
             />
             {/* Form Section */}
             <Box
               sx={{
-                flex: { md: 1 }, // Half width on desktop, adjusted for image width
+                flex: { md: 1 },
                 p: { xs: 2, sm: 4 },
               }}
             >
@@ -133,20 +161,20 @@ const Login = () => {
                 sx={{
                   p: { xs: 2, sm: 3 },
                   textAlign: "center",
-                  bgcolor: "primary.main", // Primary blue header
+                  bgcolor: "primary.main",
                   borderRadius: 10,
-                  mb: { xs: 2, sm: 3 }, // Added margin for better spacing
+                  mb: { xs: 2, sm: 3 },
                 }}
               >
                 <Typography
-                  variant="body1" // Smaller text for "Sign In"
+                  variant="body1"
                   sx={{
                     color: "white",
                     fontWeight: 600,
                     letterSpacing: 0.5,
-                    textShadow: "1px 1px 2px rgba(0,0,0,0.2)", // Subtle shadow for depth
+                    textShadow: "1px 1px 2px rgba(0,0,0,0.2)",
                     fontSize: { xs: "1rem", sm: "1.6rem" },
-                    fontStyle: "italic", // Stylish touch
+                    fontStyle: "italic",
                   }}
                 >
                   Sign In
@@ -213,21 +241,36 @@ const Login = () => {
                       <Button
                         fullWidth
                         variant="contained"
-                        color="primary"
                         type="submit"
+                        disabled={loading} // Disable button while loading
                         sx={{
                           py: { xs: 1, sm: 1.5 },
                           fontSize: { xs: "1rem", sm: "1.2rem" },
                           fontWeight: 700,
                           borderRadius: 2,
-                          bgcolor: "secondary.main", // Secondary blue for button
-                          "&:hover": { bgcolor: "#1E88E5" }, // Darker blue on hover
+                          bgcolor: "secondary.main",
+                          "&:hover": { bgcolor: "#1E88E5" },
                           boxShadow: "0px 4px 10px rgba(0,0,0,0.2)",
                           transition: "all 0.3s ease",
                           color: "white",
+                          position: "relative",
                         }}
                       >
-                        Sign In
+                        {loading ? (
+                          <CircularProgress
+                            size={24}
+                            sx={{
+                              color: "white", // Changed to white for better contrast
+                              position: "absolute",
+                              top: "50%",
+                              left: "50%",
+                              marginTop: "-12px",
+                              marginLeft: "-12px",
+                            }}
+                          />
+                        ) : (
+                          "Sign In"
+                        )}
                       </Button>
                     </Grid>
                     <Grid item xs={12} sx={{ textAlign: "center" }}>
@@ -251,6 +294,7 @@ const Login = () => {
           </Card>
         </Container>
       </Box>
+      <ToastContainer />
     </ThemeProvider>
   );
 };
