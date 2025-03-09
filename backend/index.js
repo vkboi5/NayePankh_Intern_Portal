@@ -19,7 +19,7 @@ app.use(express.json()); // Parse JSON request bodies
 app.use("/api/auth", require("./routes/authRoutes")); // Updated to match your auth.js file
 app.use("/api/users", require("./routes/userRoutes")); // Updated to match your auth.js file
 app.use("/api/dashboard", require("./routes/dashboardRoutes"));
-app.use("/api/donate", require("./routes/donatersRoutes"));
+app.use("/api/donate", require("./routes/donateRoutes"));
 app.use("/api/donations", require("./routes/donationsRoutes"));
 app.use("/api/campaign", require("./routes/campaignRoutes")); // Add campaign routes
 

@@ -47,7 +47,7 @@ const OngoingCampaigns = () => {
   useEffect(() => {
     const fetchCampaigns = async () => {
       try {
-        const response = await fetch("https://naye-pankh-intern-portal-ox93.vercel.app/api/campaign", {
+        const response = await fetch("https://naye-pankh-intern-portal.vercel.app/api/campaign", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -131,7 +131,7 @@ const OngoingCampaigns = () => {
   const handleDeleteConfirm = async () => {
     try {
       const response = await fetch(
-        `https://naye-pankh-intern-portal-ox93.vercel.app/api/campaign/${campaignToDelete._id}`,
+        `https://naye-pankh-intern-portal.vercel.app/api/campaign/${campaignToDelete._id}`,
         {
           method: "DELETE",
           headers: {
@@ -171,7 +171,7 @@ const OngoingCampaigns = () => {
   const handleUpdateConfirm = async () => {
     try {
       const response = await fetch(
-        `https://naye-pankh-intern-portal-ox93.vercel.app/api/campaign/${selectedCampaign._id}`,
+        `https://naye-pankh-intern-portal.vercel.app/api/campaign/${selectedCampaign._id}`,
         {
           method: "PUT",
           headers: {
@@ -217,7 +217,7 @@ const OngoingCampaigns = () => {
     }
     try {
       const response = await fetch(
-        `https://naye-pankh-intern-portal-ox93.vercel.app/api/campaign/${selectedCampaign._id}/extend`,
+        `https://naye-pankh-intern-portal.vercel.app/api/campaign/${selectedCampaign._id}/extend`,
         {
           method: "PUT",
           headers: {
@@ -513,7 +513,7 @@ const OngoingCampaigns = () => {
           <DialogContent sx={{ py: 3 }}>
             <Typography sx={{ color: "text.primary", fontSize: "1.1rem" }}>
               This action is irreversible. Are you sure you want to delete the
-              campaign "{campaignToDelete?.title}"?
+              campaign &quot;{campaignToDelete?.title}&quot;?
             </Typography>
           </DialogContent>
           <DialogActions sx={{ p: 2, justifyContent: "space-between" }}>
@@ -707,7 +707,7 @@ const OngoingCampaigns = () => {
           </DialogTitle>
           <DialogContent sx={{ py: 3 }}>
             <Typography sx={{ mb: 2, color: "text.primary" }}>
-              Extend "{selectedCampaign?.title}" by how many days?
+              Extend &quot;{selectedCampaign?.title}&quot; by how many days?
             </Typography>
             <TextField
               fullWidth

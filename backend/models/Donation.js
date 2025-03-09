@@ -17,12 +17,13 @@ const donationSchema = new mongoose.Schema({
     type: String,
     required: [true, "Phone number is required"],
     trim: true,
-    match: [
-      /^[6-9]\d{9}$/,
-      "Please enter a valid 10-digit phone number starting with 6-9",
-    ],
+    match: [/^[6-9]\d{9}$/, "Please enter a valid 10-digit phone number starting with 6-9"],
   },
-  donor: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+  donor: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    default: null,
+  },
   amount: {
     type: Number,
     required: [true, "Donation amount is required"],
@@ -33,14 +34,31 @@ const donationSchema = new mongoose.Schema({
     ref: "Campaign",
     required: [true, "Donation must be linked to a campaign"],
   },
+  referralCode: {
+    type: String,
+    trim: true,
+    default: null, // Optional field
+    match: [/^[A-Za-z0-9]+$/, "Referral code must be alphanumeric"], // Optional validation
+  },
   paymentStatus: {
     type: String,
     enum: ["pending", "completed", "failed"],
     default: "pending",
   },
-  paymentId: { type: String, default: null },
-  date: { type: Date, default: Date.now },
+  paymentId: {
+    type: String,
+    default: null,
+  },
+  date: {
+    type: Date,
+    default: Date.now,
+  },
 });
+
+// Indexes for performance
+donationSchema.index({ referralCode: 1 }); // For intern donation lookups
+donationSchema.index({ campaign: 1 }); // For campaign-based queries
+donationSchema.index({ paymentId: 1 }); // For payment verification
 
 const Donation = mongoose.model("Donation", donationSchema);
 

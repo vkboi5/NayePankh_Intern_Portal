@@ -81,7 +81,8 @@ function Feedback() {
               lineHeight: 1.6,
             }}
           >
-            We value your input! Let us know your thoughts to help us improve and better serve our community.
+            We value your input! Let us know your thoughts to help us improve
+            and better serve our community.
           </Typography>
 
           <Box
@@ -111,7 +112,10 @@ function Feedback() {
                   "&:hover fieldset": { borderColor: "primary.main" },
                   "&.Mui-focused fieldset": { borderColor: "primary.main" },
                 },
-                "& .MuiInputLabel-root": { color: "text.secondary", "&.Mui-focused": { color: "primary.main" } },
+                "& .MuiInputLabel-root": {
+                  color: "text.secondary",
+                  "&.Mui-focused": { color: "primary.main" },
+                },
               }}
               required
             />
@@ -131,7 +135,10 @@ function Feedback() {
                   "&:hover fieldset": { borderColor: "primary.main" },
                   "&.Mui-focused fieldset": { borderColor: "primary.main" },
                 },
-                "& .MuiInputLabel-root": { color: "text.secondary", "&.Mui-focused": { color: "primary.main" } },
+                "& .MuiInputLabel-root": {
+                  color: "text.secondary",
+                  "&.Mui-focused": { color: "primary.main" },
+                },
               }}
               required
             />
@@ -152,7 +159,10 @@ function Feedback() {
                   "&:hover fieldset": { borderColor: "primary.main" },
                   "&.Mui-focused fieldset": { borderColor: "primary.main" },
                 },
-                "& .MuiInputLabel-root": { color: "text.secondary", "&.Mui-focused": { color: "primary.main" } },
+                "& .MuiInputLabel-root": {
+                  color: "text.secondary",
+                  "&.Mui-focused": { color: "primary.main" },
+                },
               }}
               required
             />
@@ -180,6 +190,56 @@ function Feedback() {
               >
                 Submit Feedback
               </Button>
+              <Box
+                sx={{
+                  textAlign: "center",
+                  mt: 4,
+                  py: 2,
+                  px: 3,
+                  bgcolor: "secondary.light",
+                  borderRadius: 3,
+                  boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+                  transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                  "&:hover": {
+                    transform: "scale(1.05)",
+                    boxShadow: "0px 6px 20px rgba(0, 0, 0, 0.2)",
+                  },
+                }}
+              >
+                <Typography
+                  variant="h6"
+                  sx={{
+                    color: "primary.main",
+                    fontWeight: 600,
+                    mb: 1,
+                  }}
+                >
+                  Prefer Google Forms?
+                </Typography>
+                <Typography
+                  variant="body2"
+                  component="a"
+                  href="https://forms.gle/4pCaDBicMwRDaSo8A"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={{
+                    color: "#FFFFFF",
+                    bgcolor: "primary.main",
+                    py: 1,
+                    px: 4,
+                    borderRadius: 20,
+                    textDecoration: "none",
+                    display: "inline-block",
+                    fontWeight: "bold",
+                    transition: "background 0.3s ease",
+                    "&:hover": {
+                      bgcolor: "#1E5FA4",
+                    },
+                  }}
+                >
+                  Submit via Google Form
+                </Typography>
+              </Box>
             </Box>
           </Box>
         </Container>
