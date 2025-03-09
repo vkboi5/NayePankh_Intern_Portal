@@ -32,7 +32,7 @@ const donationSchema = new mongoose.Schema({
   campaign: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Campaign",
-    required: [true, "Donation must be linked to a campaign"],
+    default: null, // Optional: null for custom donations
   },
   referralCode: {
     type: String,

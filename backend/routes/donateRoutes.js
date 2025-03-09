@@ -58,11 +58,16 @@ router.post("/", async (req, res) => {
   const { donorName, amount, campaignId, referralCode, email, phoneNumber } = req.body;
 
   try {
-    const campaign = await Campaign.findById(campaignId);
-    if (!campaign) {
-      return res.status(404).json({ msg: "Campaign not found" });
+    // Validate campaign only if campaignId is provided
+    let campaign = null;
+    if (campaignId) {
+      campaign = await Campaign.findById(campaignId);
+      if (!campaign) {
+        return res.status(404).json({ msg: "Campaign not found" });
+      }
     }
 
+    // Validate referral code if provided
     let donor = null;
     if (referralCode) {
       donor = await User.findOne({ referralCode });
@@ -82,8 +87,8 @@ router.post("/", async (req, res) => {
       email,
       phoneNumber,
       donor: donor ? donor._id : null,
-      amount: amount / 100,
-      campaign: campaignId,
+      amount: amount / 100, // Store in INR
+      campaign: campaignId || null, // Allow null for custom donations
       referralCode: referralCode || null,
       paymentId: order.id,
       paymentStatus: "pending",
@@ -141,9 +146,14 @@ router.post("/verify", async (req, res) => {
     donation.paymentId = razorpay_payment_id;
     await donation.save();
 
-    const campaign = await Campaign.findById(campaignId);
-    campaign.raisedAmount += amount / 100;
-    await campaign.save();
+    // Update campaign raised amount only if campaignId is provided
+    if (campaignId) {
+      const campaign = await Campaign.findById(campaignId);
+      if (campaign) {
+        campaign.raisedAmount += amount / 100;
+        await campaign.save();
+      }
+    }
 
     res.status(200).json({ msg: "Payment verified and donation recorded successfully" });
   } catch (err) {

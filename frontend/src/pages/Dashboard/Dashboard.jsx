@@ -76,7 +76,7 @@ const theme = createTheme({
   breakpoints: { values: { xs: 0, sm: 600, md: 900, lg: 1200, xl: 1536 } },
 });
 
-const FRONTEDN_URL = "http://localhost:5173";
+const FRONTEDN_URL = "https://nayepankh-tan.vercel.app";
 
 const DashboardPage = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
