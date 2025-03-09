@@ -32,7 +32,6 @@ import {
   Dashboard as DashboardIcon,
   ListAlt as ListAltIcon,
   ProductionQuantityLimits,
-  AddCircle as AddCircleIcon,
   WhatsApp as WhatsAppIcon,
   Star as StarIcon,
   ContentCopy as ContentCopyIcon,
@@ -44,52 +43,37 @@ import {
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
 import Transactions from "./Transactions";
-import OngoingCampaigns from "./OngoingCampaigns";
-import CreateCampaign from "./StartHere";
+import CampaignStatus from "./CampaignStatus";
 import bgImg from "../../assets/welcome-img.webp";
 import Feedback from "./Feedback";
 import LearningModules from "./LearningModules";
 import FAQ from "./FAQ";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+} from "recharts";
+import Footer from "./Footer";
+import {jwtDecode} from "jwt-decode"; // Added for role check
 
 const drawerWidth = 260;
 
 const theme = createTheme({
   palette: {
-    primary: {
-      main: "#216eb6", // Logo-matching blue
-    },
-    secondary: {
-      main: "#42A5F5", // Lighter blue
-    },
-    background: {
-      default: "#E3F2FD", // Very light blue background
-    },
-    lightBlue: {
-      main: "#BBDEFB", // Light blue for accents
-    },
-    whatsappGreen: {
-      main: "#25D366", // Green for WhatsApp buttons
-    },
-    referralPink: {
-      main: "#ffa800", // Yellow for referral code
-    },
-    text: {
-      primary: "#263238", // Darker gray
-      secondary: "#546E7A", // Softer gray
-    },
+    primary: { main: "#216eb6" },
+    secondary: { main: "#42A5F5" },
+    background: { default: "#E3F2FD" },
+    lightBlue: { main: "#BBDEFB" },
+    whatsappGreen: { main: "#25D366" },
+    referralPink: { main: "#ffa800" },
+    text: { primary: "#263238", secondary: "#546E7A" },
   },
-  typography: {
-    fontFamily: "'Poppins', sans-serif",
-  },
-  breakpoints: {
-    values: {
-      xs: 0,
-      sm: 600,
-      md: 900,
-      lg: 1200,
-      xl: 1536,
-    },
-  },
+  typography: { fontFamily: "'Poppins', sans-serif" },
+  breakpoints: { values: { xs: 0, sm: 600, md: 900, lg: 1200, xl: 1536 } },
 });
 
 const FRONTEDN_URL = "https://naye-pankh-intern-portal.vercel.app";
@@ -100,26 +84,46 @@ const DashboardPage = () => {
   const [selectedSection, setSelectedSection] = useState("Dashboard");
   const [campaigns, setCampaigns] = useState([]);
   const [selectedCampaign, setSelectedCampaign] = useState(null);
-  const [userDetails, setUserDetails] = useState({
-    name: "User",
-    email: "",
-    referralCode: "",
-  });
+  const [userDetails, setUserDetails] = useState({ name: "User", email: "", referralCode: "" });
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [rewardsDialogOpen, setRewardsDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [leaderboardData, setLeaderboardData] = useState([]);
   const navigate = useNavigate();
 
   const token = localStorage.getItem("token");
   const isLoggedIn = !!token;
 
   useEffect(() => {
+    if (!isLoggedIn) {
+      navigate("/login");
+      return;
+    }
+
+    // Role check: Ensure only interns (role: "user") can access this dashboard
+    try {
+      const decoded = jwtDecode(token);
+      if (decoded.role === "Super Admin") {
+        navigate("/superadmin");
+        return;
+      } else if (decoded.role === "Admin") {
+        navigate("/moderator");
+        return;
+      } else if (decoded.role === "Intern") {
+        navigate("/dashboard"); 
+        return;
+      }
+    } catch (err) {
+      console.error("Invalid token:", err);
+      navigate("/login");
+      return;
+    }
+
     const fetchUserDetails = async () => {
-      if (!isLoggedIn) return;
       setIsLoading(true);
       try {
         const response = await fetch(
-          `https://naye-pankh-intern-portal-ox93.vercel.app/api/auth/user`,
+          "https://naye-pankh-intern-portal-ox93.vercel.app/api/auth/user",
           {
             method: "GET",
             headers: {
@@ -134,9 +138,7 @@ const DashboardPage = () => {
           setUserDetails({
             name: `${data.user.firstname} ${data.user.lastname}`,
             email: data.user.email,
-            referralCode: /^[A-Za-z0-9]+$/.test(referralCode)
-              ? referralCode
-              : "",
+            referralCode: /^[A-Za-z0-9]+$/.test(referralCode) ? referralCode : "",
           });
         } else {
           console.error("Failed to fetch user details:", data.msg);
@@ -149,7 +151,6 @@ const DashboardPage = () => {
     };
 
     const fetchCampaignData = async () => {
-      if (!isLoggedIn) return;
       setIsLoading(true);
       try {
         const response = await fetch(
@@ -165,9 +166,7 @@ const DashboardPage = () => {
         const data = await response.json();
         if (response.ok) {
           setCampaigns(data.campaigns || []);
-          setSelectedCampaign(
-            data.campaigns.length > 0 ? data.campaigns[0] : null
-          );
+          setSelectedCampaign(data.campaigns.length > 0 ? data.campaigns[0] : null);
         } else {
           console.error("Failed to fetch campaigns:", data.msg);
         }
@@ -178,83 +177,79 @@ const DashboardPage = () => {
       }
     };
 
+    const fetchLeaderboardData = async () => {
+      setIsLoading(true);
+      try {
+        // Mock data for demonstration (replace with real API if available)
+        const mockData = [
+          { name: userDetails.name, donations: 15 },
+          { name: "Amit Sharma", donations: 20 },
+          { name: "Priya Singh", donations: 18 },
+          { name: "Rahul Verma", donations: 12 },
+          { name: "Neha Patel", donations: 10 },
+        ];
+        setLeaderboardData(mockData);
+      } catch (error) {
+        console.error("Error fetching leaderboard data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     fetchUserDetails();
     fetchCampaignData();
-  }, [isLoggedIn]);
+    fetchLeaderboardData();
+  }, [isLoggedIn, userDetails.name, token, navigate]);
 
   const handleDrawerToggle = () => setMobileOpen(!mobileOpen);
-
   const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
-
   const handleMenuClose = () => setAnchorEl(null);
-
   const handleLogin = () => navigate("/login");
-
   const handleLogout = () => {
     localStorage.removeItem("token");
     navigate("/");
     setAnchorEl(null);
   };
-
   const handleSectionChange = (section) => {
     setSelectedSection(section);
     if (mobileOpen) setMobileOpen(false);
   };
-
   const handleLogoClick = () => navigate("/");
-
   const handleCopyLink = () => {
     if (!/^[A-Za-z0-9]+$/.test(userDetails.referralCode)) {
       console.error("Invalid referral code:", userDetails.referralCode);
       return;
     }
-    const donationLink = `${FRONTEDN_URL}/donate?ref=${encodeURIComponent(
-      userDetails.referralCode
-    )}`;
+    const donationLink = `${FRONTEDN_URL}/donate?ref=${encodeURIComponent(userDetails.referralCode)}`;
     navigator.clipboard.writeText(donationLink);
     setSnackbarOpen(true);
   };
-
   const handleShareWhatsApp = (campaign) => {
     if (!/^[A-Za-z0-9]+$/.test(userDetails.referralCode)) {
       console.error("Invalid referral code:", userDetails.referralCode);
       return;
     }
-    const donationLink = `${FRONTEDN_URL}/donate?ref=${encodeURIComponent(
-      userDetails.referralCode
-    )}`;
-    const message = `Support "${
-      campaign?.title || "Our Campaigns"
-    }" with NayePankh Foundation! ${
+    const donationLink = `${FRONTEDN_URL}/donate?ref=${encodeURIComponent(userDetails.referralCode)}`;
+    const message = `Support "${campaign?.title || "Our Campaigns"}" with NayePankh Foundation! ${
       campaign?.description || "Help make a difference."
     } Goal: ₹${campaign?.goalAmount?.toLocaleString() || "N/A"}, Raised: ₹${
       campaign?.raisedAmount?.toLocaleString() || "0"
-    }. Donate here: ${donationLink} using referral code ${
-      userDetails.referralCode
-    }. Visit www.nayepankh.org.in for more.`;
+    }. Donate here: ${donationLink} using referral code ${userDetails.referralCode}. Visit www.nayepankh.org.in for more.`;
     const url = `https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(url, "_blank");
   };
-
   const handleShareWhatsAppHero = () => {
     if (!/^[A-Za-z0-9]+$/.test(userDetails.referralCode)) {
       console.error("Invalid referral code:", userDetails.referralCode);
       return;
     }
-    const donationLink = `${FRONTEDN_URL}/donate?ref=${encodeURIComponent(
-      userDetails.referralCode
-    )}`;
-    const message = `Support "Our Campaigns" with NayePankh Foundation! Help make a difference. Goal: ₹${totalGoalAcrossCampaigns.toLocaleString()}, Raised: ₹${totalRaisedAcrossCampaigns.toLocaleString()}. Donate here: ${donationLink} using referral code ${
-      userDetails.referralCode
-    }. Visit www.nayepankh.org.in for more.`;
+    const donationLink = `${FRONTEDN_URL}/donate?ref=${encodeURIComponent(userDetails.referralCode)}`;
+    const message = `Support "Our Campaigns" with NayePankh Foundation! Help make a difference. Goal: ₹${totalGoalAcrossCampaigns.toLocaleString()}, Raised: ₹${totalRaisedAcrossCampaigns.toLocaleString()}. Donate here: ${donationLink} using referral code ${userDetails.referralCode}. Visit www.nayepankh.org.in for more.`;
     const url = `https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(url, "_blank");
   };
-
   const handleRewardsClick = () => setRewardsDialogOpen(true);
-
   const handleCloseDialog = () => setRewardsDialogOpen(false);
-
   const handleCloseSnackbar = () => setSnackbarOpen(false);
 
   const getLevelAchieved = (raisedAmount) => {
@@ -264,17 +259,11 @@ const DashboardPage = () => {
     return "Beginner";
   };
 
-  const totalRaisedAcrossCampaigns = campaigns.reduce(
-    (sum, campaign) => sum + (campaign.raisedAmount || 0),
-    0
-  );
-  const totalGoalAcrossCampaigns =
-    campaigns.reduce((sum, campaign) => sum + (campaign.goalAmount || 0), 0) ||
-    1;
+  const totalRaisedAcrossCampaigns = campaigns.reduce((sum, campaign) => sum + (campaign.raisedAmount || 0), 0);
+  const totalGoalAcrossCampaigns = campaigns.reduce((sum, campaign) => sum + (campaign.goalAmount || 0), 0) || 1;
 
   const menuItems = [
     { text: "Dashboard", icon: <DashboardIcon /> },
-    { text: "Create Campaign", icon: <AddCircleIcon /> },
     { text: "Transactions", icon: <ListAltIcon /> },
     { text: "Ongoing Campaigns", icon: <ProductionQuantityLimits /> },
     { text: "Learning Modules", icon: <BookOnline /> },
@@ -283,13 +272,7 @@ const DashboardPage = () => {
   ];
 
   const drawerContent = (
-    <Box
-      sx={{
-        bgcolor: "#F9F9F9",
-        height: "100%",
-        borderRight: "1px solid #E0E0E0",
-      }}
-    >
+    <Box sx={{ bgcolor: "#F9F9F9", height: "100%", borderRight: "1px solid #E0E0E0" }}>
       <Box
         sx={{
           p: { xs: 1, sm: 2 },
@@ -324,18 +307,9 @@ const DashboardPage = () => {
               sx={{
                 py: { xs: 1.2, sm: 1.5 },
                 px: { xs: 2, sm: 3 },
-                bgcolor:
-                  selectedSection === item.text
-                    ? "rgba(33,110,182,0.1)"
-                    : "transparent",
-                color:
-                  selectedSection === item.text
-                    ? "primary.main"
-                    : "text.secondary",
-                "&:hover": {
-                  bgcolor: "rgba(33,110,182,0.1)",
-                  color: "primary.main",
-                },
+                bgcolor: selectedSection === item.text ? "rgba(33,110,182,0.1)" : "transparent",
+                color: selectedSection === item.text ? "primary.main" : "text.secondary",
+                "&:hover": { bgcolor: "rgba(33,110,182,0.1)", color: "primary.main" },
                 transition: "all 0.3s ease",
                 borderRadius: 1,
                 mx: 1,
@@ -343,10 +317,7 @@ const DashboardPage = () => {
             >
               <ListItemIcon
                 sx={{
-                  color:
-                    selectedSection === item.text
-                      ? "primary.main"
-                      : "text.secondary",
+                  color: selectedSection === item.text ? "primary.main" : "text.secondary",
                   minWidth: { xs: 40, sm: 48 },
                 }}
               >
@@ -369,20 +340,22 @@ const DashboardPage = () => {
   );
 
   const getCircularProgress = (raised, goal) => {
-    const progress = Math.min((raised / goal) * 100, 100) || 0;
+    const progress = Math.min((raised / goal) *100, 100) || 0;
     return (
-      <Box
-        sx={{ position: "relative", display: "inline-flex", mb: 2, mx: "auto" }}
-      >
+      <Box sx={{ position: "relative", display: "inline-flex", mb: 2, mx: "auto" }}>
         <CircularProgress
           variant="determinate"
+          value={100}
           size={{ xs: 70, sm: 80 }}
           thickness={5}
-          sx={{
-            position: "absolute",
-            color: "rgba(33,110,182,0.2)",
-            "& .MuiCircularProgress-circle": { strokeLinecap: "round" },
-          }}
+          sx={{ position: "absolute", color: "rgba(33,110,182,0.2)", "& .MuiCircularProgress-circle": { strokeLinecap: "round" } }}
+        />
+        <CircularProgress
+          variant="determinate"
+          value={progress}
+          size={{ xs: 70, sm: 80 }}
+          thickness={5}
+          sx={{ color: "primary.main", "& .MuiCircularProgress-circle": { strokeLinecap: "round" } }}
         />
         <Box
           sx={{
@@ -411,13 +384,7 @@ const DashboardPage = () => {
 
   return (
     <ThemeProvider theme={theme}>
-      <Box
-        sx={{
-          display: "flex",
-          bgcolor: "background.default",
-          minHeight: "100vh",
-        }}
-      >
+      <Box sx={{ display: "flex", bgcolor: "background.default", minHeight: "100vh" }}>
         <AppBar
           position="fixed"
           sx={{
@@ -434,11 +401,7 @@ const DashboardPage = () => {
               aria-label="open drawer"
               edge="start"
               onClick={handleDrawerToggle}
-              sx={{
-                mr: { xs: 1, sm: 2 },
-                display: { sm: "none" },
-                color: "white",
-              }}
+              sx={{ mr: { xs: 1, sm: 2 }, display: { sm: "none" }, color: "white" }}
             >
               <MenuIcon />
             </IconButton>
@@ -456,11 +419,7 @@ const DashboardPage = () => {
               Welcome, {userDetails.name}!
             </Typography>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <IconButton
-                color="inherit"
-                onClick={handleMenuOpen}
-                sx={{ p: { xs: 0.5, sm: 1 } }}
-              >
+              <IconButton color="inherit" onClick={handleMenuOpen} sx={{ p: { xs: 0.5, sm: 1 } }}>
                 <Avatar
                   alt={userDetails.name}
                   src="/path-to-avatar.jpg"
@@ -470,9 +429,7 @@ const DashboardPage = () => {
                     border: "2px solid white",
                     boxShadow: "0px 0px 12px rgba(255, 255, 255, 0.5)",
                     transition: "all 0.3s ease",
-                    "&:hover": {
-                      boxShadow: "0px 0px 16px rgba(255, 255, 255, 0.8)",
-                    },
+                    "&:hover": { boxShadow: "0px 0px 16px rgba(255, 255, 255, 0.8)" },
                   }}
                 />
               </IconButton>
@@ -489,10 +446,7 @@ const DashboardPage = () => {
                     fontSize: { xs: "0.8rem", sm: "1rem" },
                     py: { xs: 0.5, sm: 1 },
                     px: { xs: 1, sm: 2 },
-                    "&:hover": {
-                      bgcolor: "rgba(255,255,255,0.1)",
-                      borderColor: "white",
-                    },
+                    "&:hover": { bgcolor: "rgba(255,255,255,0.1)", borderColor: "white" },
                   }}
                 >
                   Logout
@@ -535,22 +489,13 @@ const DashboardPage = () => {
                 <Box sx={{ p: { xs: 1.5, sm: 2 } }}>
                   <Typography
                     variant="subtitle1"
-                    sx={{
-                      fontWeight: 600,
-                      color: "primary.main",
-                      mb: 1,
-                      fontSize: { xs: "1rem", sm: "1.1rem" },
-                    }}
+                    sx={{ fontWeight: 600, color: "primary.main", mb: 1, fontSize: { xs: "1rem", sm: "1.1rem" } }}
                   >
                     {userDetails.name}
                   </Typography>
                   <Typography
                     variant="body2"
-                    sx={{
-                      color: "text.secondary",
-                      mb: 2,
-                      fontSize: { xs: "0.8rem", sm: "0.9rem" },
-                    }}
+                    sx={{ color: "text.secondary", mb: 2, fontSize: { xs: "0.8rem", sm: "0.9rem" } }}
                   >
                     {userDetails.email}
                   </Typography>
@@ -572,10 +517,7 @@ const DashboardPage = () => {
             </Box>
           </Toolbar>
         </AppBar>
-        <Box
-          component="nav"
-          sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
-        >
+        <Box component="nav" sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}>
           <Drawer
             variant="temporary"
             open={mobileOpen}
@@ -583,10 +525,7 @@ const DashboardPage = () => {
             ModalProps={{ keepMounted: true }}
             sx={{
               display: { xs: "block", sm: "none" },
-              "& .MuiDrawer-paper": {
-                boxSizing: "border-box",
-                width: drawerWidth,
-              },
+              "& .MuiDrawer-paper": { boxSizing: "border-box", width: drawerWidth },
             }}
           >
             {drawerContent}
@@ -595,10 +534,7 @@ const DashboardPage = () => {
             variant="permanent"
             sx={{
               display: { xs: "none", sm: "block" },
-              "& .MuiDrawer-paper": {
-                boxSizing: "border-box",
-                width: drawerWidth,
-              },
+              "& .MuiDrawer-paper": { boxSizing: "border-box", width: drawerWidth },
             }}
             open
           >
@@ -616,7 +552,7 @@ const DashboardPage = () => {
             bgcolor: "background.default",
             display: "flex",
             flexDirection: "column",
-            minHeight: "100vh", // Ensure the main content takes full height
+            minHeight: "100vh",
           }}
         >
           {isLoading && (
@@ -626,12 +562,7 @@ const DashboardPage = () => {
           )}
           <Box sx={{ mb: 4 }}>
             <Breadcrumbs
-              separator={
-                <NavigateNextIcon
-                  fontSize="small"
-                  sx={{ color: "text.secondary" }}
-                />
-              }
+              separator={<NavigateNextIcon fontSize="small" sx={{ color: "text.secondary" }} />}
               aria-label="breadcrumb"
               sx={{
                 bgcolor: "white",
@@ -644,10 +575,7 @@ const DashboardPage = () => {
               <Link
                 underline="hover"
                 color="text.secondary"
-                sx={{
-                  fontSize: { xs: "0.9rem", sm: "1rem" },
-                  cursor: "pointer",
-                }}
+                sx={{ fontSize: { xs: "0.9rem", sm: "1rem" }, cursor: "pointer" }}
                 onClick={() => handleSectionChange("Dashboard")}
               >
                 / Dashboard
@@ -673,10 +601,7 @@ const DashboardPage = () => {
                   boxShadow: "0px 8px 25px rgba(0,0,0,0.15)",
                   overflow: "hidden",
                   transition: "all 0.3s ease",
-                  "&:hover": {
-                    transform: "scale(1.02)",
-                    backdropFilter: "blur(2px)",
-                  },
+                  "&:hover": { transform: "scale(1.02)", backdropFilter: "blur(2px)" },
                 }}
               >
                 <Box
@@ -715,8 +640,7 @@ const DashboardPage = () => {
                       textShadow: "1px 1px 4px rgba(0,0,0,0.4)",
                     }}
                   >
-                    Every journey begins with a single step—let's make a
-                    difference together!
+                    Every journey begins with a single step—let's make a difference together!
                   </Typography>
                   <Typography
                     variant="body1"
@@ -761,8 +685,7 @@ const DashboardPage = () => {
                       }}
                       onMouseEnter={(e) => {
                         e.target.style.background = "rgba(211,47,47,0.2)";
-                        e.target.style.boxShadow =
-                          "0px 0px 12px rgba(211,47,47,0.5)";
+                        e.target.style.boxShadow = "0px 0px 12px rgba(211,47,47,0.5)";
                       }}
                       onMouseLeave={(e) => {
                         e.target.style.background = "rgba(211,47,47,0.1)";
@@ -788,10 +711,7 @@ const DashboardPage = () => {
                       sx={{
                         bgcolor: "secondary.main",
                         color: "white",
-                        "&:hover": {
-                          bgcolor: "#1E88E5",
-                          boxShadow: "0px 6px 20px rgba(0,0,0,0.2)",
-                        },
+                        "&:hover": { bgcolor: "#1E88E5", boxShadow: "0px 6px 20px rgba(0,0,0,0.2)" },
                         borderRadius: 25,
                         py: { xs: 1, sm: 1.2 },
                         px: { xs: 2, sm: 3 },
@@ -808,23 +728,11 @@ const DashboardPage = () => {
                     <Button
                       variant="contained"
                       startIcon={<WhatsAppIcon />}
-                      onClick={() =>
-                        handleShareWhatsAppHero(
-                          selectedCampaign || {
-                            title: "Our Campaigns",
-                            description: "Help make a difference.",
-                            goalAmount: 0,
-                            raisedAmount: 0,
-                          }
-                        )
-                      }
+                      onClick={() => handleShareWhatsAppHero(selectedCampaign || { title: "Our Campaigns", description: "Help make a difference.", goalAmount: 0, raisedAmount: 0 })}
                       sx={{
                         bgcolor: "whatsappGreen.main",
                         color: "white",
-                        "&:hover": {
-                          bgcolor: "#20B858",
-                          boxShadow: "0px 6px 20px rgba(0,0,0,0.2)",
-                        },
+                        "&:hover": { bgcolor: "#20B858", boxShadow: "0px 6px 20px rgba(0,0,0,0.2)" },
                         borderRadius: 25,
                         py: { xs: 1, sm: 1.2 },
                         px: { xs: 2, sm: 3 },
@@ -852,21 +760,13 @@ const DashboardPage = () => {
                         boxShadow: "0px 6px 20px rgba(0,0,0,0.1)",
                         bgcolor: "white",
                         transition: "all 0.3s ease",
-                        "&:hover": {
-                          transform: "translateY(-5px)",
-                          boxShadow: "0px 8px 25px rgba(0,0,0,0.15)",
-                        },
+                        "&:hover": { transform: "translateY(-5px)", boxShadow: "0px 8px 25px rgba(0,0,0,0.15)" },
                       }}
                     >
                       <CardContent sx={{ textAlign: "center" }}>
                         <Typography
                           variant="h5"
-                          sx={{
-                            color: "primary.main",
-                            fontWeight: 700,
-                            mb: 2,
-                            fontSize: { xs: "1.3rem", sm: "1.5rem" },
-                          }}
+                          sx={{ color: "primary.main", fontWeight: 700, mb: 2, fontSize: { xs: "1.3rem", sm: "1.5rem" } }}
                         >
                           Total Goal Achieved
                         </Typography>
@@ -888,35 +788,19 @@ const DashboardPage = () => {
                         >
                           <Typography
                             variant="h3"
-                            sx={{
-                              color: "primary.main",
-                              fontWeight: 800,
-                              fontSize: { xs: "2rem", sm: "2.5rem" },
-                            }}
+                            sx={{ color: "primary.main", fontWeight: 800, fontSize: { xs: "2rem", sm: "2.5rem" } }}
                           >
-                            {Math.round(
-                              (totalRaisedAcrossCampaigns /
-                                totalGoalAcrossCampaigns) *
-                                100
-                            ) || 0}
-                            %
+                            {Math.round((totalRaisedAcrossCampaigns / totalGoalAcrossCampaigns) * 100) || 0}%
                           </Typography>
                           <Typography
                             variant="body1"
-                            sx={{
-                              color: "text.primary",
-                              mt: 1,
-                              fontSize: { xs: "0.9rem", sm: "1rem" },
-                            }}
+                            sx={{ color: "text.primary", mt: 1, fontSize: { xs: "0.9rem", sm: "1rem" } }}
                           >
                             ₹{totalRaisedAcrossCampaigns.toLocaleString()}
                           </Typography>
                           <Typography
                             variant="body2"
-                            sx={{
-                              color: "text.secondary",
-                              fontSize: { xs: "0.8rem", sm: "0.9rem" },
-                            }}
+                            sx={{ color: "text.secondary", fontSize: { xs: "0.8rem", sm: "0.9rem" } }}
                           >
                             of ₹{totalGoalAcrossCampaigns.toLocaleString()}
                           </Typography>
@@ -932,28 +816,14 @@ const DashboardPage = () => {
                         boxShadow: "0px 6px 20px rgba(0,0,0,0.1)",
                         bgcolor: "white",
                         transition: "all 0.3s ease",
-                        "&:hover": {
-                          transform: "translateY(-5px)",
-                          boxShadow: "0px 8px 25px rgba(0,0,0,0.15)",
-                        },
+                        "&:hover": { transform: "translateY(-5px)", boxShadow: "0px 8px 25px rgba(0,0,0,0.15)" },
                       }}
                     >
                       <CardContent sx={{ textAlign: "center" }}>
-                        <Box
-                          sx={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            mb: 2,
-                          }}
-                        >
+                        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
                           <Typography
                             variant="h5"
-                            sx={{
-                              color: "primary.main",
-                              fontWeight: 700,
-                              fontSize: { xs: "1.3rem", sm: "1.5rem" },
-                            }}
+                            sx={{ color: "primary.main", fontWeight: 700, fontSize: { xs: "1.3rem", sm: "1.5rem" } }}
                           >
                             Level Achieved
                           </Typography>
@@ -974,57 +844,73 @@ const DashboardPage = () => {
                             Rewards
                           </Button>
                         </Box>
-                        <Box
-                          sx={{
-                            display: "flex",
-                            justifyContent: "center",
-                            alignItems: "center",
-                            gap: 1,
-                          }}
-                        >
-                          <StarIcon
-                            sx={{
-                              color: "#FFD700",
-                              fontSize: { xs: 28, sm: 36 },
-                            }}
-                          />
+                        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 1 }}>
+                          <StarIcon sx={{ color: "#FFD700", fontSize: { xs: 28, sm: 36 } }} />
                           <Typography
                             variant="h4"
-                            sx={{
-                              fontWeight: 700,
-                              color: "primary.main",
-                              fontSize: { xs: "1.5rem", sm: "2rem" },
-                            }}
+                            sx={{ fontWeight: 700, color: "primary.main", fontSize: { xs: "1.5rem", sm: "2rem" } }}
                           >
                             {getLevelAchieved(totalRaisedAcrossCampaigns)}
                           </Typography>
                         </Box>
                         <Typography
                           variant="body2"
-                          sx={{
-                            color: "text.secondary",
-                            mt: 1,
-                            fontSize: { xs: "0.8rem", sm: "0.9rem" },
-                          }}
+                          sx={{ color: "text.secondary", mt: 1, fontSize: { xs: "0.8rem", sm: "0.9rem" } }}
                         >
-                          Unlock levels: Star (₹1,000), Ninja (₹5,000), Master
-                          (₹10,000)
+                          Unlock levels: Star (₹1,000), Ninja (₹5,000), Master (₹10,000)
                         </Typography>
                       </CardContent>
                     </Card>
                   </Grid>
                 </Grid>
 
+                {/* Leadership Position Bar Graph */}
+                <Box sx={{ mt: 4 }}>
+                  <Typography
+                    variant="h5"
+                    sx={{ mb: 3, color: "primary.main", fontWeight: 700, fontSize: { xs: "1.3rem", sm: "1.5rem" } }}
+                  >
+                    Leadership Position (Donation Count)
+                  </Typography>
+                  <Card
+                    sx={{
+                      p: 3,
+                      borderRadius: 3,
+                      boxShadow: "0px 6px 20px rgba(0,0,0,0.1)",
+                      bgcolor: "white",
+                      transition: "all 0.3s ease",
+                      "&:hover": { transform: "translateY(-5px)", boxShadow: "0px 8px 25px rgba(0,0,0,0.15)" },
+                    }}
+                  >
+                    <CardContent>
+                      {leaderboardData.length > 0 ? (
+                        <BarChart
+                          width={Math.min(window.innerWidth - 100, 600)}
+                          height={300}
+                          data={leaderboardData}
+                          margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="name" />
+                          <YAxis label={{ value: "Donations", angle: -90, position: "insideLeft" }} />
+                          <Tooltip />
+                          <Legend />
+                          <Bar dataKey="donations" fill={theme.palette.primary.main} name="Donations Made" />
+                        </BarChart>
+                      ) : (
+                        <Typography variant="body2" color="text.secondary">
+                          No leaderboard data available yet.
+                        </Typography>
+                      )}
+                    </CardContent>
+                  </Card>
+                </Box>
+
                 {campaigns.length > 0 && (
                   <Box sx={{ mt: 4 }}>
                     <Typography
                       variant="h5"
-                      sx={{
-                        mb: 3,
-                        color: "primary.main",
-                        fontWeight: 700,
-                        fontSize: { xs: "1.3rem", sm: "1.5rem" },
-                      }}
+                      sx={{ mb: 3, color: "primary.main", fontWeight: 700, fontSize: { xs: "1.3rem", sm: "1.5rem" } }}
                     >
                       Your Campaigns
                     </Typography>
@@ -1037,91 +923,43 @@ const DashboardPage = () => {
                               borderRadius: 3,
                               bgcolor: "white",
                               transition: "all 0.3s ease",
-                              "&:hover": {
-                                transform: "translateY(-5px)",
-                                boxShadow: "0px 8px 25px rgba(0,0,0,0.15)",
-                              },
+                              "&:hover": { transform: "translateY(-5px)", boxShadow: "0px 8px 25px rgba(0,0,0,0.15)" },
                               border: "1px solid rgba(33,110,182,0.1)",
                             }}
                           >
-                            <CardContent
-                              sx={{
-                                p: { xs: 2, sm: 3 },
-                                display: "flex",
-                                flexDirection: "column",
-                                alignItems: "center",
-                              }}
-                            >
+                            <CardContent sx={{ p: { xs: 2, sm: 3 }, display: "flex", flexDirection: "column", alignItems: "center" }}>
                               <Typography
                                 variant="h6"
-                                sx={{
-                                  mb: 1.5,
-                                  color: "primary.main",
-                                  fontWeight: 600,
-                                  fontSize: { xs: "1.1rem", sm: "1.3rem" },
-                                }}
+                                sx={{ mb: 1.5, color: "primary.main", fontWeight: 600, fontSize: { xs: "1.1rem", sm: "1.3rem" } }}
                               >
                                 {campaign.title}
                               </Typography>
                               <Typography
                                 variant="body2"
-                                sx={{
-                                  mb: 2,
-                                  color: "text.secondary",
-                                  fontSize: { xs: "0.8rem", sm: "0.9rem" },
-                                  lineHeight: 1.6,
-                                }}
+                                sx={{ mb: 2, color: "text.secondary", fontSize: { xs: "0.8rem", sm: "0.9rem" }, lineHeight: 1.6 }}
                               >
                                 {campaign.description}
                               </Typography>
                               <Typography
                                 variant="body1"
-                                sx={{
-                                  mb: 1,
-                                  fontWeight: 500,
-                                  fontSize: { xs: "0.8rem", sm: "1rem" },
-                                }}
+                                sx={{ mb: 1, fontWeight: 500, fontSize: { xs: "0.8rem", sm: "1rem" } }}
                               >
                                 Goal: ₹{campaign.goalAmount.toLocaleString()}
                               </Typography>
                               <Typography
                                 variant="body1"
-                                sx={{
-                                  mb: 2,
-                                  fontWeight: 500,
-                                  fontSize: { xs: "0.8rem", sm: "1rem" },
-                                }}
+                                sx={{ mb: 2, fontWeight: 500, fontSize: { xs: "0.8rem", sm: "1rem" } }}
                               >
-                                Raised: ₹
-                                {campaign.raisedAmount.toLocaleString()}
+                                Raised: ₹{campaign.raisedAmount.toLocaleString()}
                               </Typography>
-                              {getCircularProgress(
-                                campaign.raisedAmount,
-                                campaign.goalAmount
-                              )}
+                              {getCircularProgress(campaign.raisedAmount, campaign.goalAmount)}
                               <Typography
                                 variant="body2"
-                                sx={{
-                                  textAlign: "center",
-                                  color: "text.secondary",
-                                  fontWeight: 500,
-                                  fontSize: { xs: "0.8rem", sm: "0.9rem" },
-                                }}
+                                sx={{ textAlign: "center", color: "text.secondary", fontWeight: 500, fontSize: { xs: "0.8rem", sm: "0.9rem" } }}
                               >
-                                {Math.round(
-                                  (campaign.raisedAmount /
-                                    campaign.goalAmount) *
-                                    100
-                                ) || 0}
-                                % Achieved
+                                {Math.round((campaign.raisedAmount / campaign.goalAmount) * 100) || 0}% Achieved
                               </Typography>
-                              <Box
-                                sx={{
-                                  display: "flex",
-                                  justifyContent: "center",
-                                  mt: 2,
-                                }}
-                              >
+                              <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
                                 <Button
                                   variant="contained"
                                   startIcon={<WhatsAppIcon />}
@@ -1153,36 +991,12 @@ const DashboardPage = () => {
               </Box>
             </Box>
           )}
-          {selectedSection === "Create Campaign" && <CreateCampaign />}
           {selectedSection === "Transactions" && <Transactions />}
-          {selectedSection === "Ongoing Campaigns" && <OngoingCampaigns />}
+          {selectedSection === "Ongoing Campaigns" && <CampaignStatus />}
           {selectedSection === "Learning Modules" && <LearningModules />}
           {selectedSection === "Feedback" && <Feedback />}
           {selectedSection === "FAQ" && <FAQ />}
-
-          {/* Footer Section */}
-          <Box
-            component="footer"
-            sx={{
-              mt: "auto", // Pushes footer to the bottom
-              py: 2,
-              textAlign: "center",
-              bgcolor: "primary.main",
-              color: "white",
-              borderTop: "1px solid rgba(255, 255, 255, 0.2)",
-            }}
-          >
-            <Typography
-              variant="body2"
-              sx={{
-                fontSize: { xs: "0.8rem", sm: "0.9rem" },
-                fontWeight: 400,
-                letterSpacing: 0.5,
-              }}
-            >
-              © {new Date().getFullYear()} NayePankh Foundation. All rights reserved.
-            </Typography>
-          </Box>
+          <Footer />
         </Box>
 
         <Snackbar
@@ -1194,47 +1008,22 @@ const DashboardPage = () => {
           <Alert
             severity="success"
             onClose={handleCloseSnackbar}
-            sx={{
-              fontSize: { xs: "0.8rem", sm: "1rem" },
-              bgcolor: "#20b858",
-              color: "white",
-            }}
+            sx={{ fontSize: { xs: "0.8rem", sm: "1rem" }, bgcolor: "#20b858", color: "white" }}
           >
             Donation link copied to clipboard
           </Alert>
         </Snackbar>
 
-        <Dialog
-          open={rewardsDialogOpen}
-          onClose={handleCloseDialog}
-          maxWidth="sm"
-          fullWidth
-        >
-          <DialogTitle
-            sx={{
-              bgcolor: "primary.main",
-              color: "white",
-              textAlign: "center",
-              p: 2,
-              fontWeight: 700,
-              fontSize: { xs: "1.2rem", sm: "1.5rem" },
-            }}
-          >
+        <Dialog open={rewardsDialogOpen} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+          <DialogTitle sx={{ bgcolor: "primary.main", color: "white", textAlign: "center", p: 2, fontWeight: 700, fontSize: { xs: "1.2rem", sm: "1.5rem" } }}>
             Rewards Program
           </DialogTitle>
           <DialogContent sx={{ p: 3, bgcolor: "background.default" }}>
             <Typography
               variant="body1"
-              sx={{
-                color: "text.primary",
-                textAlign: "center",
-                mb: 3,
-                fontSize: { xs: "0.9rem", sm: "1rem" },
-                lineHeight: 1.6,
-              }}
+              sx={{ color: "text.primary", textAlign: "center", mb: 3, fontSize: { xs: "0.9rem", sm: "1rem" }, lineHeight: 1.6 }}
             >
-              Unlock exciting rewards by reaching donation milestones with
-              NayePankh!
+              Unlock exciting rewards by reaching donation milestones with NayePankh!
             </Typography>
             <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
               <Card
@@ -1249,26 +1038,17 @@ const DashboardPage = () => {
                 }}
               >
                 <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                  <StarIcon
-                    sx={{ color: "#FFD700", fontSize: { xs: 24, sm: 30 } }}
-                  />
+                  <StarIcon sx={{ color: "#FFD700", fontSize: { xs: 24, sm: 30 } }} />
                   <Box>
                     <Typography
                       variant="h6"
-                      sx={{
-                        color: "primary.main",
-                        fontWeight: 600,
-                        fontSize: { xs: "1rem", sm: "1.2rem" },
-                      }}
+                      sx={{ color: "primary.main", fontWeight: 600, fontSize: { xs: "1rem", sm: "1.2rem" } }}
                     >
                       Star Level
                     </Typography>
                     <Typography
                       variant="body2"
-                      sx={{
-                        color: "text.secondary",
-                        fontSize: { xs: "0.8rem", sm: "0.9rem" },
-                      }}
+                      sx={{ color: "text.secondary", fontSize: { xs: "0.8rem", sm: "0.9rem" } }}
                     >
                       ₹1,000: Unlock badges & early updates
                     </Typography>
@@ -1287,26 +1067,17 @@ const DashboardPage = () => {
                 }}
               >
                 <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                  <StarIcon
-                    sx={{ color: "#FFD700", fontSize: { xs: 24, sm: 30 } }}
-                  />
+                  <StarIcon sx={{ color: "#FFD700", fontSize: { xs: 24, sm: 30 } }} />
                   <Box>
                     <Typography
                       variant="h6"
-                      sx={{
-                        color: "primary.main",
-                        fontWeight: 600,
-                        fontSize: { xs: "1rem", sm: "1.2rem" },
-                      }}
+                      sx={{ color: "primary.main", fontWeight: 600, fontSize: { xs: "1rem", sm: "1.2rem" } }}
                     >
                       Ninja Level
                     </Typography>
                     <Typography
                       variant="body2"
-                      sx={{
-                        color: "text.secondary",
-                        fontSize: { xs: "0.8rem", sm: "0.9rem" },
-                      }}
+                      sx={{ color: "text.secondary", fontSize: { xs: "0.8rem", sm: "0.9rem" } }}
                     >
                       ₹5,000: Premium features & certificates
                     </Typography>
@@ -1325,26 +1096,17 @@ const DashboardPage = () => {
                 }}
               >
                 <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                  <StarIcon
-                    sx={{ color: "#FFD700", fontSize: { xs: 24, sm: 30 } }}
-                  />
+                  <StarIcon sx={{ color: "#FFD700", fontSize: { xs: 24, sm: 30 } }} />
                   <Box>
                     <Typography
                       variant="h6"
-                      sx={{
-                        color: "primary.main",
-                        fontWeight: 600,
-                        fontSize: { xs: "1rem", sm: "1.2rem" },
-                      }}
+                      sx={{ color: "primary.main", fontWeight: 600, fontSize: { xs: "1rem", sm: "1.2rem" } }}
                     >
                       Master Level
                     </Typography>
                     <Typography
                       variant="body2"
-                      sx={{
-                        color: "text.secondary",
-                        fontSize: { xs: "0.8rem", sm: "0.9rem" },
-                      }}
+                      sx={{ color: "text.secondary", fontSize: { xs: "0.8rem", sm: "0.9rem" } }}
                     >
                       ₹10,000: Featured campaigns & VIP perks
                     </Typography>
@@ -1354,13 +1116,7 @@ const DashboardPage = () => {
             </Box>
             <Typography
               variant="body2"
-              sx={{
-                color: "text.secondary",
-                mt: 3,
-                textAlign: "center",
-                fontSize: { xs: "0.8rem", sm: "0.9rem" },
-                lineHeight: 1.6,
-              }}
+              sx={{ color: "text.secondary", mt: 3, textAlign: "center", fontSize: { xs: "0.8rem", sm: "0.9rem" }, lineHeight: 1.6 }}
             >
               Share your referral code to climb the ranks faster!
             </Typography>

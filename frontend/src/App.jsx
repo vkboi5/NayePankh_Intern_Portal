@@ -1,11 +1,14 @@
-import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
-import { ErrorBoundary } from "react-error-boundary"; // Import ErrorBoundary
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { ErrorBoundary } from "react-error-boundary";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Donate from "./pages/Donate";
-import Home from "./pages/Home"
-// Fallback component for errors
+import Home from "./pages/Home";
+import SuperAdminDashboard from "./pages/Super_Admin_Dashboard/SuperAdminDashboard";
+import ModeratorDashboard from "./pages/Moderator_Dashboard/ModeratorDashboard";
+
+
 function ErrorFallback({ error, resetErrorBoundary }) {
   return (
     <div role="alert" style={{ padding: "20px", textAlign: "center", backgroundColor: "#ffebee", color: "#d32f2f" }}>
@@ -30,27 +33,19 @@ function ErrorFallback({ error, resetErrorBoundary }) {
   );
 }
 
-// Wrapper component to conditionally render Navbar
-const AppContent = () => {
-
-  return (
-    <>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/donate" element={<Donate />} />
-      </Routes>
-    </>
-  );
-};
-
 function App() {
   return (
     <Router>
       <ErrorBoundary FallbackComponent={ErrorFallback} onReset={() => window.location.reload()}>
-        <AppContent />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/donate" element={<Donate />} />
+          <Route path="/superadmin" element={<SuperAdminDashboard />} />
+          <Route path="/moderator" element={<ModeratorDashboard />} />
+        </Routes>
       </ErrorBoundary>
     </Router>
   );

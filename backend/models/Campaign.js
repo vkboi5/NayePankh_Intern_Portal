@@ -1,4 +1,3 @@
-// backend/models/Campaign.js
 const mongoose = require("mongoose");
 
 const campaignSchema = new mongoose.Schema({
@@ -28,7 +27,7 @@ const campaignSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
-    required: [true, "Campaign must be linked to a user"],
+    required: false, // No longer required
   },
   startDate: {
     type: Date,

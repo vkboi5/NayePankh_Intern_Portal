@@ -8,7 +8,8 @@ const router = express.Router();
 // Middleware to authenticate user
 const authMiddleware = async (req, res, next) => {
   const token = req.header("Authorization")?.replace("Bearer ", "");
-  if (!token) return res.status(401).json({ msg: "No token, authorization denied" });
+  if (!token)
+    return res.status(401).json({ msg: "No token, authorization denied" });
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -21,7 +22,7 @@ const authMiddleware = async (req, res, next) => {
 };
 
 router.post("/signup", async (req, res) => {
-  const { firstname, lastname, email, password,internshipPeriod } = req.body;
+  const { firstname, lastname, email, password, internshipPeriod } = req.body;
 
   try {
     if (!firstname || !lastname || !email || !password || !internshipPeriod) {
@@ -33,7 +34,6 @@ router.post("/signup", async (req, res) => {
       return res.status(400).json({ msg: "User already exists" });
     }
 
-    // Generate or ensure unique referral code
     let referralCode;
     let isUnique = false;
     while (!isUnique) {
@@ -56,10 +56,17 @@ router.post("/signup", async (req, res) => {
 
     await user.save();
 
-    const payload = { id: user.id };
-    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "7d" });
+    const payload = { id: user.id, role: user.role }; // Include role
+    const token = jwt.sign(payload, process.env.JWT_SECRET, {
+      expiresIn: "7d",
+    });
 
-    res.status(201).json({ token, user: { id: user.id, firstname, lastname, email, referralCode } });
+    res
+      .status(201)
+      .json({
+        token,
+        user: { id: user.id, firstname, lastname, email, referralCode },
+      });
   } catch (err) {
     console.error(err);
     res.status(500).json({ msg: "Server Error" });
@@ -76,10 +83,12 @@ router.post("/login", async (req, res) => {
     if (!user) return res.status(400).json({ msg: "Invalid Credentials" });
 
     const isMatch = await bcrypt.compare(password, user.password);
-    console.log("Password match:", isMatch); // Debug log
     if (!isMatch) return res.status(400).json({ msg: "Invalid Credentials" });
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
+    const payload = { id: user._id, role: user.role }; // Include role
+    const token = jwt.sign(payload, process.env.JWT_SECRET, {
+      expiresIn: "7d",
+    });
     res.json({ token, user });
   } catch (err) {
     console.error(err);

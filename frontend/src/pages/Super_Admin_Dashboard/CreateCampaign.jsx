@@ -8,43 +8,26 @@ import {
   Card,
   CardContent,
   Container,
-  CircularProgress, // Added for loader
+  CircularProgress,
 } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { ToastContainer, toast } from "react-toastify"; // Added for toast
-import "react-toastify/dist/ReactToastify.css"; // Toastify CSS
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { useNavigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
 
 const theme = createTheme({
   palette: {
-    primary: {
-      main: "#216eb6", // Logo-matching blue
-    },
-    secondary: {
-      main: "#42A5F5", // Lighter blue
-    },
-    background: {
-      default: "#E3F2FD", // Very light blue
-    },
-    text: {
-      primary: "#263238", // Darker gray
-      secondary: "#546E7A", // Softer gray
-    },
+    primary: { main: "#216eb6" },
+    secondary: { main: "#42A5F5" },
+    background: { default: "#E3F2FD" },
+    text: { primary: "#263238", secondary: "#546E7A" },
   },
-  typography: {
-    fontFamily: "'Poppins', sans-serif",
-  },
-  breakpoints: {
-    values: {
-      xs: 0,
-      sm: 600,
-      md: 900,
-      lg: 1200,
-      xl: 1536,
-    },
-  },
+  typography: { fontFamily: "'Poppins', sans-serif" },
+  breakpoints: { values: { xs: 0, sm: 600, md: 900, lg: 1200, xl: 1536 } },
 });
 
-const CreateCampaign = () => {
+const CreateCampaigns = () => {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -54,13 +37,35 @@ const CreateCampaign = () => {
   });
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
-      setError("Please log in to create a campaign");
+      toast.error("Please log in to access this page", {
+        position: "top-right",
+        autoClose: 2000,
+      });
+      navigate("/login");
+      return;
     }
-  }, []);
+
+    try {
+      const decoded = jwtDecode(token);
+      if (decoded.role !== "Super Admin") {
+        toast.error("Access denied: Super Admin only", {
+          position: "top-right",
+          autoClose: 2000,
+        });
+        navigate("/dashboard");
+        return;
+      }
+    } catch (err) {
+      console.error("Invalid token:", err);
+      navigate("/login");
+      return;
+    }
+  }, [navigate]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -75,62 +80,63 @@ const CreateCampaign = () => {
       toast.error("Please log in to create a campaign", {
         position: "top-right",
         autoClose: 2000,
-        onClose: () => setIsLoading(false),
       });
-      setIsLoading(false);
+      navigate("/login");
       return;
     }
 
-    const start = new Date(formData.startDate);
-    const end = new Date(formData.endDate);
-    if (!formData.title || !formData.description || !formData.goalAmount || !formData.startDate || !formData.endDate) {
+    const { title, description, goalAmount, startDate, endDate } = formData;
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    // Validation
+    if (!title || !description || !goalAmount || !startDate || !endDate) {
       toast.error("All fields are required", {
         position: "top-right",
         autoClose: 2000,
-        onClose: () => setIsLoading(false),
       });
-      setIsLoading(false);
       return;
     }
     if (isNaN(start) || isNaN(end) || start >= end) {
       toast.error("End date must be after start date", {
         position: "top-right",
         autoClose: 2000,
-        onClose: () => setIsLoading(false),
       });
-      setIsLoading(false);
       return;
     }
-    if (parseFloat(formData.goalAmount) <= 0) {
+    if (parseFloat(goalAmount) <= 0) {
       toast.error("Goal amount must be greater than 0", {
         position: "top-right",
         autoClose: 2000,
-        onClose: () => setIsLoading(false),
       });
-      setIsLoading(false);
       return;
     }
 
-    setIsLoading(true); // Show loader
+    setIsLoading(true);
     try {
       const response = await fetch("https://naye-pankh-intern-portal-ox93.vercel.app/api/campaign", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          title: formData.title,
-          description: formData.description,
-          goalAmount: parseFloat(formData.goalAmount),
+          title,
+          description,
+          goalAmount: parseFloat(goalAmount),
           startDate: start.toISOString(),
           endDate: end.toISOString(),
         }),
       });
       const data = await response.json();
       if (response.ok) {
-        console.log("Campaign created:", data.campaign);
-        setFormData({ title: "", description: "", goalAmount: "", startDate: "", endDate: "" });
+        setFormData({
+          title: "",
+          description: "",
+          goalAmount: "",
+          startDate: "",
+          endDate: "",
+        });
         toast.success("Campaign created successfully!", {
           position: "top-right",
           autoClose: 2000,
@@ -139,9 +145,7 @@ const CreateCampaign = () => {
           pauseOnHover: true,
           draggable: true,
           theme: "colored",
-          onClose: () => {
-            setIsLoading(false); // Stop loader after toast closes
-          },
+          onClose: () => setIsLoading(false),
         });
       } else {
         toast.error(data.msg || "Failed to create campaign", {
@@ -285,7 +289,10 @@ const CreateCampaign = () => {
                   </Grid>
                   {error && (
                     <Grid item xs={12}>
-                      <Typography color="error" sx={{ textAlign: "center", fontSize: { xs: "0.8rem", sm: "1rem" } }}>
+                      <Typography
+                        color="error"
+                        sx={{ textAlign: "center", fontSize: { xs: "0.8rem", sm: "1rem" } }}
+                      >
                         {error}
                       </Typography>
                     </Grid>
@@ -328,10 +335,10 @@ const CreateCampaign = () => {
             </CardContent>
           </Card>
         </Container>
-        <ToastContainer /> {/* Added ToastContainer for notifications */}
+        <ToastContainer />
       </Box>
     </ThemeProvider>
   );
 };
 
-export default CreateCampaign;
+export default CreateCampaigns;

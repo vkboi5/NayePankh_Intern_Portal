@@ -14,44 +14,25 @@ import {
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import loginImage from "../assets/loginBgm.jpg"; // Replace with your image path
+import loginImage from "../assets/loginBgm.jpg";
+import { useNavigate } from "react-router-dom";
+import {jwtDecode} from "jwt-decode";
 
 const theme = createTheme({
   palette: {
-    primary: {
-      main: "#216eb6", // Logo-matching blue
-    },
-    secondary: {
-      main: "#42A5F5", // Lighter blue
-    },
-    background: {
-      default: "#E3F2FD", // Very light blue background
-    },
-    text: {
-      primary: "#263238", // Darker gray
-      secondary: "#546E7A", // Softer gray
-    },
+    primary: { main: "#216eb6" },
+    secondary: { main: "#42A5F5" },
+    background: { default: "#E3F2FD" },
+    text: { primary: "#263238", secondary: "#546E7A" },
   },
-  typography: {
-    fontFamily: "'Poppins', sans-serif", // Modern font
-  },
-  breakpoints: {
-    values: {
-      xs: 0,
-      sm: 600,
-      md: 900,
-      lg: 1200,
-      xl: 1536,
-    },
-  },
+  typography: { fontFamily: "'Poppins', sans-serif" },
+  breakpoints: { values: { xs: 0, sm: 600, md: 900, lg: 1200, xl: 1536 } },
 });
 
 const Login = () => {
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
-  const [loading, setLoading] = useState(false); // Loader state
+  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate(); // Hook for navigation
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -60,7 +41,8 @@ const Login = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setLoading(true); // Show loader at the start
+    setLoading(true);
+
     try {
       const response = await fetch(
         "https://naye-pankh-intern-portal-ox93.vercel.app/api/auth/login",
@@ -71,28 +53,45 @@ const Login = () => {
         }
       );
       const data = await response.json();
-      console.log(data.token);
+      console.log(data);
       if (response.ok) {
-        localStorage.setItem("token", data.token);
+        const token = data.token;
+        localStorage.setItem("token", token);
+
+        // Option 1: If role is in response (preferred)
+        let role = data.user.role;
+
+        // Option 2: If role is in token (decode JWT)
+        if (!role) {
+          const decoded = jwtDecode(token);
+          role = decoded.role; // Assumes role is in token payload; adjust if different
+        }
+
         toast.success("Successfully logged in!", {
           position: "top-right",
-          autoClose: 2000, // Toast visible for 2 seconds
+          autoClose: 2000,
           hideProgressBar: false,
           closeOnClick: true,
           pauseOnHover: true,
           draggable: true,
           theme: "colored",
           onClose: () => {
-            setLoading(false); // Stop loader only after toast closes
-            window.location.href = "/dashboard"; // Redirect after toast
-          }, // Redirect when toast closes
+            setLoading(false);
+            // Redirect based on role
+            if (role === "Super Admin") {
+              navigate("/superadmin");
+            } else if (role === "Admin") {
+              navigate("/moderator");
+            } else {
+              navigate("/dashboard"); // Default for "user" role
+            }
+          },
         });
       } else {
-        console.error(data.msg);
         toast.error(data.msg || "Login failed", {
           position: "top-right",
           autoClose: 2000,
-          onClose: () => setLoading(false), // Stop loader after error toast
+          onClose: () => setLoading(false),
         });
       }
     } catch (error) {
@@ -100,10 +99,9 @@ const Login = () => {
       toast.error("An error occurred. Please try again.", {
         position: "top-right",
         autoClose: 2000,
-        onClose: () => setLoading(false), // Stop loader after error toast
+        onClose: () => setLoading(false),
       });
     }
-    // Note: Removed the `finally` block to control loader via toast `onClose`
   };
 
   return (
@@ -131,7 +129,6 @@ const Login = () => {
               mx: "auto",
             }}
           >
-            {/* Image Section */}
             <Box
               sx={{
                 flex: { md: 1.2 },
@@ -150,13 +147,7 @@ const Login = () => {
                 backgroundAttachment: { xs: "local", sm: "scroll" },
               }}
             />
-            {/* Form Section */}
-            <Box
-              sx={{
-                flex: { md: 1 },
-                p: { xs: 2, sm: 4 },
-              }}
-            >
+            <Box sx={{ flex: { md: 1 }, p: { xs: 2, sm: 4 } }}>
               <Box
                 sx={{
                   p: { xs: 2, sm: 3 },
@@ -196,17 +187,10 @@ const Login = () => {
                         sx={{
                           "& .MuiOutlinedInput-root": {
                             "&:hover fieldset": { borderColor: "primary.main" },
-                            "&.Mui-focused fieldset": {
-                              borderColor: "primary.main",
-                            },
+                            "&.Mui-focused fieldset": { borderColor: "primary.main" },
                           },
-                          "& .MuiInputLabel-root": {
-                            color: "primary.main",
-                            fontSize: { xs: "0.9rem", sm: "1rem" },
-                          },
-                          "& .MuiInputLabel-root.Mui-focused": {
-                            color: "primary.main",
-                          },
+                          "& .MuiInputLabel-root": { color: "primary.main", fontSize: { xs: "0.9rem", sm: "1rem" } },
+                          "& .MuiInputLabel-root.Mui-focused": { color: "primary.main" },
                         }}
                       />
                     </Grid>
@@ -223,17 +207,10 @@ const Login = () => {
                         sx={{
                           "& .MuiOutlinedInput-root": {
                             "&:hover fieldset": { borderColor: "primary.main" },
-                            "&.Mui-focused fieldset": {
-                              borderColor: "primary.main",
-                            },
+                            "&.Mui-focused fieldset": { borderColor: "primary.main" },
                           },
-                          "& .MuiInputLabel-root": {
-                            color: "primary.main",
-                            fontSize: { xs: "0.9rem", sm: "1rem" },
-                          },
-                          "& .MuiInputLabel-root.Mui-focused": {
-                            color: "primary.main",
-                          },
+                          "& .MuiInputLabel-root": { color: "primary.main", fontSize: { xs: "0.9rem", sm: "1rem" } },
+                          "& .MuiInputLabel-root.Mui-focused": { color: "primary.main" },
                         }}
                       />
                     </Grid>
@@ -242,7 +219,7 @@ const Login = () => {
                         fullWidth
                         variant="contained"
                         type="submit"
-                        disabled={loading} // Disable button while loading
+                        disabled={loading}
                         sx={{
                           py: { xs: 1, sm: 1.5 },
                           fontSize: { xs: "1rem", sm: "1.2rem" },
@@ -260,7 +237,7 @@ const Login = () => {
                           <CircularProgress
                             size={24}
                             sx={{
-                              color: "white", // Changed to white for better contrast
+                              color: "white",
                               position: "absolute",
                               top: "50%",
                               left: "50%",
