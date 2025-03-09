@@ -61,7 +61,7 @@ const InternsList = () => {
   useEffect(() => {
     const fetchInterns = async () => {
       try {
-        const response = await fetch("https://naye-pankh-intern-portal.vercel.app/api/users", {
+        const response = await fetch("https://naye-pankh-intern-portal-ox93.vercel.app/api/users", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -104,7 +104,7 @@ const InternsList = () => {
     }
     try {
       const referralCode = generateReferralCode();
-      const response = await fetch("https://naye-pankh-intern-portal.vercel.app/api/auth/signup", {
+      const response = await fetch("https://naye-pankh-intern-portal-ox93.vercel.app/api/auth/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -168,7 +168,7 @@ const InternsList = () => {
     }
     try {
       const response = await fetch(
-        `https://naye-pankh-intern-portal.vercel.app/api/users/${selectedIntern._id}`,
+        `https://naye-pankh-intern-portal-ox93.vercel.app/api/users/${selectedIntern._id}`,
         {
           method: "PUT",
           headers: {
@@ -220,7 +220,7 @@ const InternsList = () => {
     }
     try {
       const response = await fetch(
-        `https://naye-pankh-intern-portal.vercel.app/api/users/${selectedIntern._id}`,
+        `https://naye-pankh-intern-portal-ox93.vercel.app/api/users/${selectedIntern._id}`,
         {
           method: "DELETE",
           headers: {

@@ -127,7 +127,7 @@ const DashboardPage = () => {
     const fetchUserDetails = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch("https://naye-pankh-intern-portal.vercel.app/api/auth/user", {
+        const response = await fetch("https://naye-pankh-intern-portal-ox93.vercel.app/api/auth/user", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -159,7 +159,7 @@ const DashboardPage = () => {
     const fetchCampaignData = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch("https://naye-pankh-intern-portal.vercel.app/api/campaign", {
+        const response = await fetch("https://naye-pankh-intern-portal-ox93.vercel.app/api/campaign", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
