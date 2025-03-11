@@ -76,7 +76,7 @@ const theme = createTheme({
   breakpoints: { values: { xs: 0, sm: 600, md: 900, lg: 1200, xl: 1536 } },
 });
 
-const FRONTEDN_URL = "https://nayepankh-tan.vercel.app";
+const FRONTEDN_URL = "http://localhost:5174";
 
 const DashboardPage = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -84,6 +84,10 @@ const DashboardPage = () => {
   const [selectedSection, setSelectedSection] = useState("Dashboard");
   const [campaigns, setCampaigns] = useState([]);
   const [selectedCampaign, setSelectedCampaign] = useState(null);
+  const [userGoalData, setUserGoalData] = useState({
+    totalRaised: 0,
+    totalGoal: 1,
+  });
   const [userDetails, setUserDetails] = useState({
     name: "User",
     email: "",
@@ -127,7 +131,7 @@ const DashboardPage = () => {
     const fetchUserDetails = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch("https://naye-pankh-intern-portal-ox93.vercel.app/api/auth/user", {
+        const response = await fetch("http://localhost:5000/api/auth/user", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -159,7 +163,7 @@ const DashboardPage = () => {
     const fetchCampaignData = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch("https://naye-pankh-intern-portal-ox93.vercel.app/api/campaign", {
+        const response = await fetch("http://localhost:5000/api/campaign", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -185,20 +189,70 @@ const DashboardPage = () => {
     const fetchLeaderboardData = async () => {
       setIsLoading(true);
       try {
-        const mockData = [
-          { name: userDetails.name, donations: 15 },
-          { name: "Amit Sharma", donations: 20 },
-          { name: "Priya Singh", donations: 18 },
-          { name: "Rahul Verma", donations: 12 },
-          { name: "Neha Patel", donations: 10 },
-        ];
-        setLeaderboardData(mockData);
+        const response = await fetch(
+          "http://localhost:5000/api/donations/leaderboard",
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        const data = await response.json();
+        if (response.ok) {
+          const leaderboard = data.leaderboard.map((entry) => ({
+            name: entry.name || "Anonymous",
+            donations: entry.totalAmount, // Already in INR as per Donation model
+          }));
+          setLeaderboardData(leaderboard);
+        } else {
+          console.error("Failed to fetch leaderboard data:", data.msg);
+          setError(data.msg || "Failed to fetch leaderboard data");
+        }
       } catch (error) {
         console.error("Error fetching leaderboard data:", error);
+        setError("Error fetching leaderboard data. Please try again.");
       } finally {
         setIsLoading(false);
       }
     };
+
+    const fetchUserGoalData = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch("http://localhost:5000/api/donations", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await response.json();
+        if (response.ok) {
+          const userDonations = data.donations || [];
+          const totalRaised = userDonations.reduce(
+            (sum, donation) => sum + donation.amount,
+            0
+          );
+          const totalGoal =
+            campaigns.reduce(
+              (sum, campaign) => sum + (campaign.goalAmount || 0),
+              0
+            ) || 1000;
+          setUserGoalData({ totalRaised, totalGoal });
+        } else {
+          setError(data.msg || "Failed to fetch user donation data");
+        }
+      } catch (error) {
+        setError("Error fetching user donation data. Please try again.");
+        console.error("Fetch Error:", error.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUserGoalData();
 
     fetchUserDetails();
     fetchCampaignData();
@@ -880,10 +934,11 @@ const DashboardPage = () => {
                         borderRadius: 3,
                         boxShadow: "0px 6px 20px rgba(0,0,0,0.1)",
                         bgcolor: "white",
+                        background: "linear-gradient(135deg, #ffffff, #f0f7ff)",
                         transition: "all 0.3s ease",
                         "&:hover": {
                           transform: "translateY(-5px)",
-                          boxShadow: "0px 8px 25px rgba(0,0,0,0.15)",
+                          boxShadow: "0px 10px 30px rgba(0,0,0,0.15)",
                         },
                       }}
                     >
@@ -897,14 +952,14 @@ const DashboardPage = () => {
                             fontSize: { xs: "1.3rem", sm: "1.5rem" },
                           }}
                         >
-                          Total Goal Achieved
+                          Your Total Goal Achieved
                         </Typography>
                         <Box
                           sx={{
                             width: { xs: 150, sm: 200 },
                             height: { xs: 150, sm: 200 },
                             borderRadius: "50%",
-                            border: `3px dashed ${theme.palette.secondary.main}`,
+                            border: `4px dashed ${theme.palette.secondary.main}`,
                             display: "flex",
                             flexDirection: "column",
                             justifyContent: "center",
@@ -912,7 +967,10 @@ const DashboardPage = () => {
                             bgcolor: "rgba(33,110,182,0.05)",
                             mx: "auto",
                             transition: "all 0.3s ease",
-                            "&:hover": { bgcolor: "rgba(33,110,182,0.1)" },
+                            "&:hover": {
+                              bgcolor: "rgba(33,110,182,0.1)",
+                              transform: "scale(1.05)",
+                            },
                           }}
                         >
                           <Typography
@@ -924,9 +982,8 @@ const DashboardPage = () => {
                             }}
                           >
                             {Math.round(
-                              (totalRaisedAcrossCampaigns /
-                                totalGoalAcrossCampaigns) *
-                                100
+                              (userGoalData.totalRaised /
+                                userGoalData.totalGoal) * 100
                             ) || 0}
                             %
                           </Typography>
@@ -938,7 +995,7 @@ const DashboardPage = () => {
                               fontSize: { xs: "0.9rem", sm: "1rem" },
                             }}
                           >
-                            ₹{totalRaisedAcrossCampaigns.toLocaleString()}
+                            ₹{userGoalData.totalRaised.toLocaleString()}
                           </Typography>
                           <Typography
                             variant="body2"
@@ -947,7 +1004,7 @@ const DashboardPage = () => {
                               fontSize: { xs: "0.8rem", sm: "0.9rem" },
                             }}
                           >
-                            of ₹{totalGoalAcrossCampaigns.toLocaleString()}
+                            of ₹{userGoalData.totalGoal.toLocaleString()}
                           </Typography>
                         </Box>
                       </CardContent>
@@ -1025,7 +1082,7 @@ const DashboardPage = () => {
                               fontSize: { xs: "1.5rem", sm: "2rem" },
                             }}
                           >
-                            {getLevelAchieved(totalRaisedAcrossCampaigns)}
+                            {getLevelAchieved(userGoalData.totalRaised)}
                           </Typography>
                         </Box>
                         <Typography
@@ -1051,21 +1108,27 @@ const DashboardPage = () => {
                       mb: 3,
                       color: "primary.main",
                       fontWeight: 700,
-                      fontSize: { xs: "1.3rem", sm: "1.5rem" },
+                      fontSize: { xs: "1.5rem", sm: "2rem" },
+                      textAlign: "center",
+                      background: "linear-gradient(90deg, #216eb6, #42A5F5)",
+                      WebkitBackgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
                     }}
                   >
-                    Leadership Position (Donation Count)
+                    Leadership Board
                   </Typography>
                   <Card
                     sx={{
                       p: 3,
                       borderRadius: 3,
-                      boxShadow: "0px 6px 20px rgba(0,0,0,0.1)",
+                      boxShadow: "0px 10px 30px rgba(0,0,0,0.15)",
                       bgcolor: "white",
+                      background: "linear-gradient(135deg, #ffffff, #f9f9f9)",
+                      border: "1px solid rgba(33,110,182,0.1)",
                       transition: "all 0.3s ease",
                       "&:hover": {
                         transform: "translateY(-5px)",
-                        boxShadow: "0px 8px 25px rgba(0,0,0,0.15)",
+                        boxShadow: "0px 12px 40px rgba(0,0,0,0.2)",
                       },
                     }}
                   >
@@ -1073,30 +1136,55 @@ const DashboardPage = () => {
                       {leaderboardData.length > 0 ? (
                         <BarChart
                           width={Math.min(window.innerWidth - 100, 600)}
-                          height={300}
+                          height={350}
                           data={leaderboardData}
-                          margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                          margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
                         >
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="name" />
+                          <CartesianGrid
+                            strokeDasharray="3 3"
+                            stroke="#e0e0e0"
+                          />
+                          <XAxis
+                            dataKey="name"
+                            tick={{ fontSize: 12, fill: "#546E7A" }}
+                          />
                           <YAxis
                             label={{
-                              value: "Donations",
+                              value: "Total Amount (₹)",
                               angle: -90,
                               position: "insideLeft",
+                              fill: "#216eb6",
+                              fontWeight: 600,
+                            }}
+                            tick={{ fontSize: 12, fill: "#546E7A" }}
+                          />
+                          <Tooltip
+                            formatter={(value) => `₹${value.toLocaleString()}`}
+                            contentStyle={{
+                              backgroundColor: "#fff",
+                              borderRadius: 5,
+                              border: "1px solid #e0e0e0",
                             }}
                           />
-                          <Tooltip />
-                          <Legend />
+                          <Legend
+                            wrapperStyle={{ fontSize: 14, color: "#263238" }}
+                          />
                           <Bar
                             dataKey="donations"
                             fill={theme.palette.primary.main}
-                            name="Donations Made"
+                            name="Total Donations"
+                            barSize={40}
+                            radius={[5, 5, 0, 0]}
                           />
                         </BarChart>
                       ) : (
-                        <Typography variant="body2" color="text.secondary">
-                          No leaderboard data available yet.
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{ textAlign: "center", fontStyle: "italic" }}
+                        >
+                          No leaderboard data available yet. Start fundraising
+                          to climb the ranks!
                         </Typography>
                       )}
                     </CardContent>
@@ -1111,25 +1199,31 @@ const DashboardPage = () => {
                         mb: 3,
                         color: "primary.main",
                         fontWeight: 700,
-                        fontSize: { xs: "1.3rem", sm: "1.5rem" },
+                        fontSize: { xs: "1.5rem", sm: "2rem" },
+                        textAlign: "center",
+                        background: "linear-gradient(90deg, #216eb6, #42A5F5)",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
                       }}
                     >
-                      Your Campaigns
+                      Ongoing Campaigns!
                     </Typography>
                     <Grid container spacing={{ xs: 2, sm: 3, md: 4 }}>
                       {campaigns.map((campaign) => (
                         <Grid item xs={12} sm={6} md={4} key={campaign._id}>
                           <Card
                             sx={{
-                              boxShadow: "0px 6px 20px rgba(0,0,0,0.1)",
+                              boxShadow: "0px 8px 25px rgba(0,0,0,0.1)",
                               borderRadius: 3,
                               bgcolor: "white",
+                              background:
+                                "linear-gradient(135deg, #ffffff, #f0f7ff)",
+                              border: "1px solid rgba(33,110,182,0.1)",
                               transition: "all 0.3s ease",
                               "&:hover": {
-                                transform: "translateY(-5px)",
-                                boxShadow: "0px 8px 25px rgba(0,0,0,0.15)",
+                                transform: "scale(1.05)",
+                                boxShadow: "0px 12px 35px rgba(0,0,0,0.15)",
                               },
-                              border: "1px solid rgba(33,110,182,0.1)",
                             }}
                           >
                             <CardContent
@@ -1147,6 +1241,7 @@ const DashboardPage = () => {
                                   color: "primary.main",
                                   fontWeight: 600,
                                   fontSize: { xs: "1.1rem", sm: "1.3rem" },
+                                  textAlign: "center",
                                 }}
                               >
                                 {campaign.title}
@@ -1158,6 +1253,7 @@ const DashboardPage = () => {
                                   color: "text.secondary",
                                   fontSize: { xs: "0.8rem", sm: "0.9rem" },
                                   lineHeight: 1.6,
+                                  textAlign: "center",
                                 }}
                               >
                                 {campaign.description}
@@ -1217,7 +1313,10 @@ const DashboardPage = () => {
                                   sx={{
                                     bgcolor: "whatsappGreen.main",
                                     color: "white",
-                                    "&:hover": { bgcolor: "#20B858" },
+                                    "&:hover": {
+                                      bgcolor: "#20B858",
+                                      boxShadow: "0px 6px 20px rgba(0,0,0,0.2)",
+                                    },
                                     borderRadius: 20,
                                     py: { xs: 0.8, sm: 1 },
                                     px: { xs: 2, sm: 3 },

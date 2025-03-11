@@ -29,7 +29,7 @@ const TotalDonations = () => {
   useEffect(() => {
     const fetchDonations = async () => {
       try {
-        const response = await fetch("https://naye-pankh-intern-portal-ox93.vercel.app/api/donations", {
+        const response = await fetch("http://localhost:5000/api/donations", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -124,57 +124,61 @@ const TotalDonations = () => {
                 <Card sx={{ boxShadow: "0px 4px 15px rgba(0,0,0,0.1)", borderRadius: 3 }}>
                   <CardContent>
                     <TableContainer component={Paper}>
-                      <Table sx={{ minWidth: 650 }} aria-label="all donations table">
-                        <TableHead>
-                          <TableRow sx={{ bgcolor: "primary.main" }}>
-                            <TableCell sx={{ color: "white", fontWeight: 600 }}>Donor Name</TableCell>
-                            <TableCell sx={{ color: "white", fontWeight: 600 }}>Campaign</TableCell>
-                            <TableCell sx={{ color: "white", fontWeight: 600 }}>Amount</TableCell>
-                            <TableCell sx={{ color: "white", fontWeight: 600 }}>Type</TableCell>
-                            <TableCell sx={{ color: "white", fontWeight: 600 }}>Referral Code</TableCell>
-                            <TableCell sx={{ color: "white", fontWeight: 600 }}>Date</TableCell>
-                          </TableRow>
-                        </TableHead>
-                        <TableBody>
-                          {allDonations.map((donation) => (
-                            <TableRow
-                              key={donation._id}
-                              sx={{ "&:hover": { bgcolor: "rgba(33,110,182,0.05)" }, transition: "background-color 0.3s" }}
-                            >
-                              <TableCell>{donation.donorName || "Anonymous"}</TableCell>
-                              <TableCell>{donation.campaign?.title || "Unknown"}</TableCell>
-                              <TableCell>₹{donation.amount.toLocaleString()}</TableCell>
-                              <TableCell>
-                                <Chip
-                                  label={donation.referralCode ? "Referral" : "Non-Referral"}
-                                  size="small"
-                                  sx={{
-                                    fontWeight: 600,
-                                    fontSize: "0.8rem",
-                                    color: "white",
-                                    bgcolor: donation.referralCode
-                                      ? "linear-gradient(45deg, #42A5F5 30%, #2196F3 90%)" // Blue gradient for referral
-                                      : "linear-gradient(45deg, #FF7043 30%, #F4511E 90%)", // Orange gradient for non-referral
-                                    background: donation.referralCode
-                                      ? "linear-gradient(45deg, #42A5F5 30%, #2196F3 90%)"
-                                      : "linear-gradient(45deg, #FF7043 30%, #F4511E 90%)",
-                                    boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
-                                    borderRadius: "16px",
-                                    padding: "0 8px",
-                                    "&:hover": {
-                                      transform: "scale(1.05)",
-                                      boxShadow: "0 4px 8px rgba(0,0,0,0.3)",
-                                    },
-                                    transition: "all 0.2s ease-in-out",
-                                  }}
-                                />
-                              </TableCell>
-                              <TableCell>{donation.referralCode || "N/A"}</TableCell>
-                              <TableCell>{new Date(donation.date).toLocaleDateString()}</TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
+                  <Table sx={{ minWidth: 650 }} aria-label="all donations table">
+                    <TableHead>
+                      <TableRow sx={{ bgcolor: "primary.main" }}>
+                        <TableCell sx={{ color: "white", fontWeight: 600 }}>Donor Name</TableCell>
+                        <TableCell sx={{ color: "white", fontWeight: 600 }}>Campaign Title</TableCell>
+                        <TableCell sx={{ color: "white", fontWeight: 600 }}>Description</TableCell>
+                        <TableCell sx={{ color: "white", fontWeight: 600 }}>Goal Amount</TableCell>
+                        <TableCell sx={{ color: "white", fontWeight: 600 }}>Amount</TableCell>
+                        <TableCell sx={{ color: "white", fontWeight: 600 }}>Type</TableCell>
+                        <TableCell sx={{ color: "white", fontWeight: 600 }}>Referral Code</TableCell>
+                        <TableCell sx={{ color: "white", fontWeight: 600 }}>Date</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {allDonations.map((donation) => (
+                        <TableRow
+                          key={donation._id}
+                          sx={{ "&:hover": { bgcolor: "rgba(33,110,182,0.05)" }, transition: "background-color 0.3s" }}
+                        >
+                          <TableCell>{donation.donorName || "Anonymous"}</TableCell>
+                          <TableCell>{donation.campaign.title}</TableCell>
+                          <TableCell>{donation.campaign.description}</TableCell>
+                          <TableCell>{donation.campaign.goalAmount ? `₹${donation.campaign.goalAmount.toLocaleString()}` : "N/A"}</TableCell>
+                          <TableCell>₹{donation.amount.toLocaleString()}</TableCell>
+                          <TableCell>
+                            <Chip
+                              label={donation.referralCode ? "Referral" : "Non-Referral"}
+                              size="small"
+                              sx={{
+                                fontWeight: 600,
+                                fontSize: "0.8rem",
+                                color: "white",
+                                bgcolor: donation.referralCode
+                                  ? "linear-gradient(45deg, #42A5F5 30%, #2196F3 90%)"
+                                  : "linear-gradient(45deg, #FF7043 30%, #F4511E 90%)",
+                                background: donation.referralCode
+                                  ? "linear-gradient(45deg, #42A5F5 30%, #2196F3 90%)"
+                                  : "linear-gradient(45deg, #FF7043 30%, #F4511E 90%)",
+                                boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+                                borderRadius: "16px",
+                                padding: "0 8px",
+                                "&:hover": {
+                                  transform: "scale(1.05)",
+                                  boxShadow: "0 4px 8px rgba(0,0,0,0.3)",
+                                },
+                                transition: "all 0.2s ease-in-out",
+                              }}
+                            />
+                          </TableCell>
+                          <TableCell>{donation.referralCode || "N/A"}</TableCell>
+                          <TableCell>{new Date(donation.date).toLocaleDateString()}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                     </TableContainer>
                   </CardContent>
                 </Card>

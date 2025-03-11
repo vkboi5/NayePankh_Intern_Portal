@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -7,26 +7,25 @@ import {
   AccordionSummary,
   AccordionDetails,
   Button,
+  Radio,
+  RadioGroup,
+  FormControlLabel,
+  FormControl,
+  FormLabel,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import YouTubeIcon from "@mui/icons-material/YouTube";
 
 const theme = createTheme({
   palette: {
-    primary: {
-      main: "#216eb6", // Logo-matching blue
-    },
-    secondary: {
-      main: "#42A5F5", // Lighter blue
-    },
-    background: {
-      default: "#E3F2FD", // Very light blue background
-    },
-    text: {
-      primary: "#263238", // Darker gray for contrast
-      secondary: "#546E7A", // Softer gray
-    },
+    primary: { main: "#216eb6" },
+    secondary: { main: "#42A5F5" },
+    background: { default: "#E3F2FD" },
+    text: { primary: "#263238", secondary: "#546E7A" },
   },
   typography: {
     fontFamily: "'Poppins', sans-serif",
@@ -39,13 +38,44 @@ const theme = createTheme({
 const chapters = [
   {
     id: 1,
-    title: "Chapter 1: The Power of Crowdfunding",
+    title: "Chapter 1: How does Crowdfunding Work in 2025",
     info: "Explore how crowdfunding can transform ideas into action and empower communities to create change.",
     video: {
       title: "How crowdfunding is changing the world | Simon Sinek",
-      thumbnail: "https://img.youtube.com/vi/8jPQjjsBbIc/hqdefault.jpg",
-      url: "https://www.youtube.com/watch?v=8jPQjjsBbIc",
+      url: "https://www.youtube.com/embed/8-EyxMuvE9A", // Updated link
     },
+    quiz: [
+      {
+        question: "According to the speaker, what are the three main obstacles that prevent people from turning their ideas into reality?",
+        options: [
+          "A) Lack of time, lack of resources, and lack of motivation.",
+          "B) Complexity, money, and uncertainty.",
+          "C) Fear of failure, lack of support, and lack of creativity.",
+          "D) Lack of education, lack of experience, and lack of connections.",
+        ],
+        correctAnswer: "B",
+      },
+      {
+        question: "What is the speaker's main argument for using crowdfunding to make ideas a reality?",
+        options: [
+          "A) Crowdfunding is a quick and easy way to get rich.",
+          "B) Crowdfunding is a way to avoid taking risks.",
+          "C) Crowdfunding allows people to test their ideas and get feedback from potential customers.",
+          "D) Crowdfunding is a way to get government funding for new businesses.",
+        ],
+        correctAnswer: "C",
+      },
+      {
+        question: "What example does the speaker use to illustrate the power of crowdfunding to overcome uncertainty?",
+        options: [
+          "A) The speaker's own experience of successfully crowdfunding a business.",
+          "B) The story of a successful entrepreneur who used crowdfunding to launch a new product.",
+          "C) The example of Greg's food truck idea, where the audience's support demonstrates potential customer interest.",
+          "D) The speaker's argument that crowdfunding is a way to avoid taking risks.",
+        ],
+        correctAnswer: "C",
+      },
+    ],
   },
   {
     id: 2,
@@ -53,8 +83,7 @@ const chapters = [
     info: "Learn strategies to engage and grow a community that supports your mission.",
     video: {
       title: "The art of asking | Amanda Palmer",
-      thumbnail: "https://img.youtube.com/vi/xMj_P_6H69g/hqdefault.jpg",
-      url: "https://www.youtube.com/watch?v=xMj_P_6H69g",
+      url: "https://www.youtube.com/embed/5YtGJKbhUoQ", // Updated link
     },
   },
   {
@@ -63,8 +92,7 @@ const chapters = [
     info: "Understand the importance of storytelling in connecting with donors and supporters.",
     video: {
       title: "The power of vulnerability | Brené Brown",
-      thumbnail: "https://img.youtube.com/vi/iCvmsMzlF7o/hqdefault.jpg",
-      url: "https://www.youtube.com/watch?v=iCvmsMzlF7o",
+      url: "https://www.youtube.com/embed/iCvmsMzlF7o",
     },
   },
   {
@@ -73,8 +101,7 @@ const chapters = [
     info: "Discover how to expand your crowdfunding efforts and sustain long-term impact.",
     video: {
       title: "How great leaders inspire action | Simon Sinek",
-      thumbnail: "https://img.youtube.com/vi/qp0HIF3SfI4/hqdefault.jpg",
-      url: "https://www.youtube.com/watch?v=qp0HIF3SfI4",
+      url: "https://www.youtube.com/embed/qp0HIF3SfI4",
     },
   },
   {
@@ -83,13 +110,61 @@ const chapters = [
     info: "See how rejections make a good impact that can reshape your future and your perspective.",
     video: {
       title: "The power of collective compassion | Krista Tippett",
-      thumbnail: "https://img.youtube.com/vi/-vZXgApsPCQ/hqdefault.jpg",
-      url: "https://youtu.be/-vZXgApsPCQ",
+      url: "https://www.youtube.com/embed/-vZXgApsPCQ",
     },
   },
 ];
 
 function LearningModules() {
+  const [expanded, setExpanded] = useState(false);
+  const [quizOpen, setQuizOpen] = useState(false);
+  const [quizAnswers, setQuizAnswers] = useState({});
+  const [quizScore, setQuizScore] = useState(null);
+  const [scores, setScores] = useState(() => {
+    const savedScores = localStorage.getItem("quizScores");
+    return savedScores ? JSON.parse(savedScores) : {};
+  });
+
+  useEffect(() => {
+    localStorage.setItem("quizScores", JSON.stringify(scores));
+  }, [scores]);
+
+  const handleAccordionChange = (panel) => (event, isExpanded) => {
+    setExpanded(isExpanded ? panel : false);
+  };
+
+  const handleQuizOpen = () => setQuizOpen(true);
+  const handleQuizClose = () => {
+    setQuizOpen(false);
+    setQuizAnswers({});
+    setQuizScore(null);
+  };
+
+  const handleQuizChange = (questionIndex, value) => {
+    setQuizAnswers((prev) => ({
+      ...prev,
+      [questionIndex]: value,
+    }));
+  };
+
+  const handleQuizSubmit = (chapterId) => {
+    const chapter = chapters.find((ch) => ch.id === chapterId);
+    if (!chapter.quiz) return;
+
+    let score = 0;
+    chapter.quiz.forEach((q, index) => {
+      if (quizAnswers[index] === q.correctAnswer) score += 1;
+    });
+
+    const totalQuestions = chapter.quiz.length;
+    const percentageScore = (score / totalQuestions) * 100;
+    setQuizScore(percentageScore);
+    setScores((prev) => ({
+      ...prev,
+      [chapterId]: percentageScore,
+    }));
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <Box
@@ -145,6 +220,8 @@ function LearningModules() {
             {chapters.map((chapter) => (
               <Accordion
                 key={chapter.id}
+                expanded={expanded === `panel${chapter.id}`}
+                onChange={handleAccordionChange(`panel${chapter.id}`)}
                 sx={{
                   mb: 3,
                   borderRadius: 2,
@@ -189,45 +266,21 @@ function LearningModules() {
                   <Box
                     sx={{
                       position: "relative",
-                      display: "inline-block",
-                      "&:hover .youtube-icon": { opacity: 1 },
+                      width: { xs: "100%", sm: "560px" },
+                      height: { xs: "200px", sm: "315px" },
+                      mb: 3,
                     }}
                   >
-                    <Box
-                      component="img"
-                      src={chapter.video.thumbnail}
-                      alt={chapter.video.title}
-                      sx={{
-                        width: { xs: "100%", sm: "300px" },
-                        height: "auto",
-                        borderRadius: 2,
-                        transition: "opacity 0.3s ease",
-                        "&:hover": { opacity: 0.8 },
-                      }}
+                    <iframe
+                      width="100%"
+                      height="100%"
+                      src={chapter.video.url}
+                      title={chapter.video.title}
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      style={{ borderRadius: "8px", boxShadow: "0px 4px 15px rgba(0,0,0,0.1)" }}
                     />
-                    <Button
-                      href={chapter.video.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      sx={{
-                        position: "absolute",
-                        top: "50%",
-                        left: "50%",
-                        transform: "translate(-50%, -50%)",
-                        bgcolor: "transparent",
-                        "&:hover": { bgcolor: "transparent" },
-                      }}
-                    >
-                      <YouTubeIcon
-                        className="youtube-icon"
-                        sx={{
-                          fontSize: { xs: "3rem", md: "4rem" },
-                          color: "#FF0000",
-                          opacity: 0,
-                          transition: "opacity 0.3s ease",
-                        }}
-                      />
-                    </Button>
                   </Box>
                   <Typography
                     variant="caption"
@@ -240,10 +293,74 @@ function LearningModules() {
                   >
                     {chapter.video.title}
                   </Typography>
+
+                  {chapter.id === 1 && (
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={handleQuizOpen}
+                      sx={{ mt: 2, borderRadius: 20, px: 3, py: 1 }}
+                    >
+                      Test Your Understanding
+                    </Button>
+                  )}
                 </AccordionDetails>
               </Accordion>
             ))}
           </Box>
+
+          {/* Quiz Popup */}
+          <Dialog open={quizOpen} onClose={handleQuizClose} maxWidth="sm" fullWidth>
+            <DialogTitle sx={{ bgcolor: "primary.main", color: "white", textAlign: "center", fontWeight: 600 }}>
+              Test Your Understanding - Chapter 1
+            </DialogTitle>
+            <DialogContent sx={{ p: 3 }}>
+              {chapters[0].quiz.map((q, index) => (
+                <FormControl component="fieldset" key={index} sx={{ mb: 3 }}>
+                  <FormLabel component="legend" sx={{ color: "text.primary", fontWeight: 500, mb: 1 }}>
+                    {q.question}
+                  </FormLabel>
+                  <RadioGroup
+                    value={quizAnswers[index] || ""}
+                    onChange={(e) => handleQuizChange(index, e.target.value)}
+                  >
+                    {q.options.map((option, i) => (
+                      <FormControlLabel
+                        key={i}
+                        value={option.charAt(0)}
+                        control={<Radio color="primary" />}
+                        label={option}
+                        sx={{ color: "text.secondary" }}
+                      />
+                    ))}
+                  </RadioGroup>
+                </FormControl>
+              ))}
+              {quizScore !== null && (
+                <Typography sx={{ mt: 2, color: "primary.main" }}>
+                  Your Score: {quizScore.toFixed(2)}% (Stored: {scores[1]?.toFixed(2) || "N/A"}%)
+                </Typography>
+              )}
+            </DialogContent>
+            <DialogActions sx={{ justifyContent: "space-between", p: 2 }}>
+              <Button
+                variant="outlined"
+                color="primary"
+                onClick={handleQuizClose}
+                sx={{ borderRadius: 20, px: 3 }}
+              >
+                Close
+              </Button>
+              <Button
+                variant="contained"
+                color="secondary"
+                onClick={() => handleQuizSubmit(1)}
+                sx={{ borderRadius: 20, px: 3 }}
+              >
+                Submit Quiz
+              </Button>
+            </DialogActions>
+          </Dialog>
         </Container>
       </Box>
     </ThemeProvider>
