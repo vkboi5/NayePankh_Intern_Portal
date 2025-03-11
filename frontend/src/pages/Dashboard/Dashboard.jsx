@@ -76,7 +76,7 @@ const theme = createTheme({
   breakpoints: { values: { xs: 0, sm: 600, md: 900, lg: 1200, xl: 1536 } },
 });
 
-const FRONTEDN_URL = "http://localhost:5174";
+const FRONTEDN_URL = "https://nayepankh-tan.vercel.app";
 
 const DashboardPage = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -131,7 +131,7 @@ const DashboardPage = () => {
     const fetchUserDetails = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch("http://localhost:5000/api/auth/user", {
+        const response = await fetch("https://naye-pankh-intern-portal-ox93.vercel.app/api/auth/user", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -163,7 +163,7 @@ const DashboardPage = () => {
     const fetchCampaignData = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch("http://localhost:5000/api/campaign", {
+        const response = await fetch("https://naye-pankh-intern-portal-ox93.vercel.app/api/campaign", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -190,7 +190,7 @@ const DashboardPage = () => {
       setIsLoading(true);
       try {
         const response = await fetch(
-          "http://localhost:5000/api/donations/leaderboard",
+          "https://naye-pankh-intern-portal-ox93.vercel.app/api/donations/leaderboard",
           {
             method: "GET",
             headers: {
@@ -221,7 +221,7 @@ const DashboardPage = () => {
     const fetchUserGoalData = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch("http://localhost:5000/api/donations", {
+        const response = await fetch("https://naye-pankh-intern-portal-ox93.vercel.app/api/donations", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
