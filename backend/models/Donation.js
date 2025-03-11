@@ -34,6 +34,11 @@ const donationSchema = new mongoose.Schema({
     ref: "Campaign",
     default: null, // Optional: null for custom donations
   },
+  campaignDetails: {
+    title: { type: String, default: "Custom Donation" },
+    description: { type: String, default: "A custom donation without a specific campaign" },
+    goalAmount: { type: Number, default: null }, // Optional, for static campaigns
+  }, // New embedded object for campaign details
   referralCode: {
     type: String,
     trim: true,

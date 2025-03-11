@@ -54,20 +54,33 @@ router.get("/:referralCode", async (req, res) => {
 });
 
 // POST /api/donate - Create donation order
+// In donateRoutes.js
 router.post("/", async (req, res) => {
-  const { donorName, amount, campaignId, referralCode, email, phoneNumber } = req.body;
+  const { donorName, amount, campaignId, referralCode, email, phoneNumber, campaignDetails } = req.body;
 
   try {
-    // Validate campaign only if campaignId is provided
     let campaign = null;
+    let donationCampaignDetails = {
+      title: "Custom Donation",
+      description: "A custom donation without a specific campaign",
+      goalAmount: null,
+    };
+
     if (campaignId) {
       campaign = await Campaign.findById(campaignId);
       if (!campaign) {
         return res.status(404).json({ msg: "Campaign not found" });
       }
+      // If campaign exists, don't use campaignDetails from request
+    } else if (campaignDetails) {
+      // Use provided campaignDetails for custom/static donations
+      donationCampaignDetails = {
+        title: campaignDetails.title || "Custom Donation",
+        description: campaignDetails.description || "A custom donation without a specific campaign",
+        goalAmount: campaignDetails.goalAmount || null,
+      };
     }
 
-    // Validate referral code if provided
     let donor = null;
     if (referralCode) {
       donor = await User.findOne({ referralCode });
@@ -87,8 +100,9 @@ router.post("/", async (req, res) => {
       email,
       phoneNumber,
       donor: donor ? donor._id : null,
-      amount: amount / 100, // Store in INR
-      campaign: campaignId || null, // Allow null for custom donations
+      amount: amount / 100,
+      campaign: campaignId || null,
+      campaignDetails: campaignId ? undefined : donationCampaignDetails, // Only set if no campaignId
       referralCode: referralCode || null,
       paymentId: order.id,
       paymentStatus: "pending",
