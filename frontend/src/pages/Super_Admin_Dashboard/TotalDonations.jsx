@@ -29,7 +29,7 @@ const TotalDonations = () => {
   useEffect(() => {
     const fetchDonations = async () => {
       try {
-        const response = await fetch("https://naye-pankh-intern-portal-ox93.vercel.app/api/donations", {
+        const response = await fetch("http://localhost:5000/api/donations", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",

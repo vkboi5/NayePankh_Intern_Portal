@@ -163,7 +163,7 @@ const DashboardPage = () => {
       setIsLoading(true);
       try {
         const response = await fetch(
-          "https://naye-pankh-intern-portal-ox93.vercel.app/api/auth/user",
+          "http://localhost:5000/api/auth/user",
           {
             method: "GET",
             headers: {
@@ -198,7 +198,7 @@ const DashboardPage = () => {
       setIsLoading(true);
       try {
         const response = await fetch(
-          "https://naye-pankh-intern-portal-ox93.vercel.app/api/campaign",
+          "http://localhost:5000/api/campaign",
           {
             method: "GET",
             headers: {
@@ -227,7 +227,7 @@ const DashboardPage = () => {
       setIsLoading(true);
       try {
         const response = await fetch(
-          "https://naye-pankh-intern-portal-ox93.vercel.app/api/donations/leaderboard",
+          "http://localhost:5000/api/donations/leaderboard",
           {
             method: "GET",
             headers: {
@@ -259,7 +259,7 @@ const DashboardPage = () => {
       setIsLoading(true);
       try {
         const response = await fetch(
-          "https://naye-pankh-intern-portal-ox93.vercel.app/api/donations",
+          "http://localhost:5000/api/donations",
           {
             method: "GET",
             headers: {

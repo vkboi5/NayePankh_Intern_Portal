@@ -45,7 +45,7 @@ const Login = () => {
 
     try {
       const response = await fetch(
-        "https://naye-pankh-intern-portal-ox93.vercel.app/api/auth/login",
+        "http://localhost:5000/api/auth/login",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

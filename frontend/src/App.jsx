@@ -7,6 +7,7 @@ import Donate from "./pages/Donate";
 import Home from "./pages/Home";
 import SuperAdminDashboard from "./pages/Super_Admin_Dashboard/SuperAdminDashboard";
 import ModeratorDashboard from "./pages/Moderator_Dashboard/ModeratorDashboard";
+import DonationSuccess from "./pages/DonationSuccess";
 
 
 function ErrorFallback({ error, resetErrorBoundary }) {
@@ -42,7 +43,8 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/register" element={<Register />} />
-          {/* <Route path="/donate" element={<Donate />} /> */}
+          <Route path="/donation-success" element={<DonationSuccess />} />
+          <Route path="/donate" element={<Donate />} />
           <Route path="/superadmin" element={<SuperAdminDashboard />} />
           <Route path="/moderator" element={<ModeratorDashboard />} />
         </Routes>

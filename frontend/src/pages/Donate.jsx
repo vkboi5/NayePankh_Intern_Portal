@@ -51,8 +51,8 @@ const Donate = () => {
       try {
         // Use public endpoint if no referral code, otherwise use referral-specific endpoint
         const url = initialReferralCode
-          ? `https://naye-pankh-intern-portal-ox93.vercel.app/api/donate/${encodeURIComponent(initialReferralCode)}`
-          : "https://naye-pankh-intern-portal-ox93.vercel.app/api/donate/public";
+          ? `http://localhost:5000/api/donate/${encodeURIComponent(initialReferralCode)}`
+          : "http://localhost:5000/api/donate/public";
         console.log("Fetching campaigns from:", url);
 
         const response = await fetch(url);
@@ -151,7 +151,7 @@ const Donate = () => {
     try {
       const amountInPaise = Math.round(amountInINR * 100);
 
-      const response = await fetch("https://naye-pankh-intern-portal-ox93.vercel.app/api/donate", {
+      const response = await fetch("http://localhost:5000/api/donate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -178,7 +178,7 @@ const Donate = () => {
         description: `Donation to ${selectedCampaign?.title || "Campaign"}`,
         order_id: orderData.orderId,
         handler: async (response) => {
-          const verifyResponse = await fetch("https://naye-pankh-intern-portal-ox93.vercel.app/api/donate/verify", {
+          const verifyResponse = await fetch("http://localhost:5000/api/donate/verify", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
