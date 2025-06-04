@@ -15,9 +15,16 @@ import {
   Paper,
   Grid,
   Chip,
+  TextField,
+  InputAdornment,
+  MenuItem,
+  Select,
+  FormControl,
+  Button,
 } from "@mui/material";
 import { ThemeProvider } from "@mui/material/styles";
 import theme from "../../theme"; // Ensure this matches your theme file
+import SearchIcon from "@mui/icons-material/Search";
 
 const TotalDonations = () => {
   const [allDonations, setAllDonations] = useState([]);
@@ -25,6 +32,15 @@ const TotalDonations = () => {
   const [nonReferralTotal, setNonReferralTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const token = localStorage.getItem("token");
+  const [filters, setFilters] = useState({
+    donorName: "",
+    campaignTitle: "",
+    description: "",
+    referralCode: "",
+    type: "",
+    date: "",
+  });
+  const [visibleCount, setVisibleCount] = useState(10);
 
   useEffect(() => {
     const fetchDonations = async () => {
@@ -62,6 +78,20 @@ const TotalDonations = () => {
 
     fetchDonations();
   }, [token]);
+
+  useEffect(() => {
+    setVisibleCount(10); // Reset pagination when filters or data change
+  }, [filters, allDonations]);
+
+  const filteredDonations = allDonations.filter((donation) => {
+    const matchesDonor = filters.donorName === "" || (donation.donorName && donation.donorName.toLowerCase().includes(filters.donorName.toLowerCase()));
+    const matchesCampaign = filters.campaignTitle === "" || (donation.campaign && donation.campaign.title && donation.campaign.title.toLowerCase().includes(filters.campaignTitle.toLowerCase()));
+    const matchesDescription = filters.description === "" || (donation.campaign && donation.campaign.description && donation.campaign.description.toLowerCase().includes(filters.description.toLowerCase()));
+    const matchesReferral = filters.referralCode === "" || (donation.referralCode && donation.referralCode.toLowerCase().includes(filters.referralCode.toLowerCase()));
+    const matchesType = filters.type === "" || (filters.type === "Referral" ? donation.referralCode : !donation.referralCode);
+    const matchesDate = filters.date === "" || (donation.date && new Date(donation.date).toLocaleDateString().includes(filters.date));
+    return matchesDonor && matchesCampaign && matchesDescription && matchesReferral && matchesType && matchesDate;
+  });
 
   return (
     <ThemeProvider theme={theme}>
@@ -116,73 +146,166 @@ const TotalDonations = () => {
               <Typography variant="h5" sx={{ mb: 2, color: "primary.main", fontWeight: 600 }}>
                 All Donations
               </Typography>
-              {allDonations.length === 0 ? (
-                <Typography sx={{ textAlign: "center", color: "text.secondary", mb: 4 }}>
-                  No donations found.
-                </Typography>
-              ) : (
-                <Card sx={{ boxShadow: "0px 4px 15px rgba(0,0,0,0.1)", borderRadius: 3 }}>
-                  <CardContent>
-                    <TableContainer component={Paper}>
-                  <Table sx={{ minWidth: 650 }} aria-label="all donations table">
-                    <TableHead>
-                      <TableRow sx={{ bgcolor: "primary.main" }}>
-                        <TableCell sx={{ color: "white", fontWeight: 600 }}>Donor Name</TableCell>
-                        <TableCell sx={{ color: "white", fontWeight: 600 }}>Campaign Title</TableCell>
-                        <TableCell sx={{ color: "white", fontWeight: 600 }}>Description</TableCell>
-                        <TableCell sx={{ color: "white", fontWeight: 600 }}>Goal Amount</TableCell>
-                        <TableCell sx={{ color: "white", fontWeight: 600 }}>Amount</TableCell>
-                        <TableCell sx={{ color: "white", fontWeight: 600 }}>Type</TableCell>
-                        <TableCell sx={{ color: "white", fontWeight: 600 }}>Referral Code</TableCell>
-                        <TableCell sx={{ color: "white", fontWeight: 600 }}>Date</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {allDonations.map((donation) => (
-                        <TableRow
-                          key={donation._id}
-                          sx={{ "&:hover": { bgcolor: "rgba(33,110,182,0.05)" }, transition: "background-color 0.3s" }}
-                        >
-                          <TableCell>{donation.donorName || "Anonymous"}</TableCell>
-                          <TableCell>{donation.campaign.title}</TableCell>
-                          <TableCell>{donation.campaign.description}</TableCell>
-                          <TableCell>{donation.campaign.goalAmount ? `₹${donation.campaign.goalAmount.toLocaleString()}` : "N/A"}</TableCell>
-                          <TableCell>₹{donation.amount.toLocaleString()}</TableCell>
+              <Card sx={{ boxShadow: "0px 4px 15px rgba(0,0,0,0.1)", borderRadius: 3 }}>
+                <CardContent>
+                  <TableContainer component={Paper}>
+                    <Table sx={{ minWidth: 650 }} aria-label="all donations table">
+                      <TableHead>
+                        <TableRow sx={{ bgcolor: "primary.main" }}>
+                          <TableCell sx={{ color: "white", fontWeight: 600 }}>Donor Name</TableCell>
+                          <TableCell sx={{ color: "white", fontWeight: 600 }}>Campaign Title</TableCell>
+                          <TableCell sx={{ color: "white", fontWeight: 600 }}>Description</TableCell>
+                          <TableCell sx={{ color: "white", fontWeight: 600 }}>Goal Amount</TableCell>
+                          <TableCell sx={{ color: "white", fontWeight: 600 }}>Amount</TableCell>
+                          <TableCell sx={{ color: "white", fontWeight: 600 }}>Type</TableCell>
+                          <TableCell sx={{ color: "white", fontWeight: 600 }}>Referral Code</TableCell>
+                          <TableCell sx={{ color: "white", fontWeight: 600 }}>Date</TableCell>
+                        </TableRow>
+                        <TableRow>
                           <TableCell>
-                            <Chip
-                              label={donation.referralCode ? "Referral" : "Non-Referral"}
-                              size="small"
-                              sx={{
-                                fontWeight: 600,
-                                fontSize: "0.8rem",
-                                color: "white",
-                                bgcolor: donation.referralCode
-                                  ? "linear-gradient(45deg, #42A5F5 30%, #2196F3 90%)"
-                                  : "linear-gradient(45deg, #FF7043 30%, #F4511E 90%)",
-                                background: donation.referralCode
-                                  ? "linear-gradient(45deg, #42A5F5 30%, #2196F3 90%)"
-                                  : "linear-gradient(45deg, #FF7043 30%, #F4511E 90%)",
-                                boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
-                                borderRadius: "16px",
-                                padding: "0 8px",
-                                "&:hover": {
-                                  transform: "scale(1.05)",
-                                  boxShadow: "0 4px 8px rgba(0,0,0,0.3)",
-                                },
-                                transition: "all 0.2s ease-in-out",
-                              }}
+                            <TextField
+                              variant="standard"
+                              value={filters.donorName}
+                              onChange={e => setFilters(f => ({ ...f, donorName: e.target.value }))}
+                              placeholder="Donor Name"
+                              InputProps={{ disableUnderline: true, sx: { fontSize: '0.95rem' } }}
+                              sx={{ bgcolor: 'background.paper', borderRadius: 2, width: '100%', px: 1, my: 0.5, boxShadow: 0, fontSize: '0.95rem' }}
                             />
                           </TableCell>
-                          <TableCell>{donation.referralCode || "N/A"}</TableCell>
-                          <TableCell>{new Date(donation.date).toLocaleDateString()}</TableCell>
+                          <TableCell>
+                            <TextField
+                              variant="standard"
+                              value={filters.campaignTitle}
+                              onChange={e => setFilters(f => ({ ...f, campaignTitle: e.target.value }))}
+                              placeholder="Campaign Title"
+                              InputProps={{ disableUnderline: true, sx: { fontSize: '0.95rem' } }}
+                              sx={{ bgcolor: 'background.paper', borderRadius: 2, width: '100%', px: 1, my: 0.5, boxShadow: 0, fontSize: '0.95rem' }}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <TextField
+                              variant="standard"
+                              value={filters.description}
+                              onChange={e => setFilters(f => ({ ...f, description: e.target.value }))}
+                              placeholder="Description"
+                              InputProps={{ disableUnderline: true, sx: { fontSize: '0.95rem' } }}
+                              sx={{ bgcolor: 'background.paper', borderRadius: 2, width: '100%', px: 1, my: 0.5, boxShadow: 0, fontSize: '0.95rem' }}
+                            />
+                          </TableCell>
+                          <TableCell />
+                          <TableCell />
+                          <TableCell>
+                            <FormControl variant="standard" sx={{ width: '100%', my: 0.5 }}>
+                              <Select
+                                value={filters.type}
+                                onChange={e => setFilters(f => ({ ...f, type: e.target.value }))}
+                                displayEmpty
+                                disableUnderline
+                                sx={{ bgcolor: 'background.paper', borderRadius: 2, fontSize: '0.95rem', px: 1 }}
+                                renderValue={selected => selected === '' ? 'Type' : selected}
+                              >
+                                <MenuItem value="">All Types</MenuItem>
+                                <MenuItem value="Referral">Referral</MenuItem>
+                                <MenuItem value="Non-Referral">Non-Referral</MenuItem>
+                              </Select>
+                            </FormControl>
+                          </TableCell>
+                          <TableCell>
+                            <TextField
+                              variant="standard"
+                              value={filters.referralCode}
+                              onChange={e => setFilters(f => ({ ...f, referralCode: e.target.value }))}
+                              placeholder="Referral Code"
+                              InputProps={{ disableUnderline: true, sx: { fontSize: '0.95rem' } }}
+                              sx={{ bgcolor: 'background.paper', borderRadius: 2, width: '100%', px: 1, my: 0.5, boxShadow: 0, fontSize: '0.95rem' }}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <TextField
+                              variant="standard"
+                              value={filters.date}
+                              onChange={e => setFilters(f => ({ ...f, date: e.target.value }))}
+                              placeholder="Date (MM/DD/YYYY)"
+                              InputProps={{ disableUnderline: true, sx: { fontSize: '0.95rem' } }}
+                              sx={{ bgcolor: 'background.paper', borderRadius: 2, width: '100%', px: 1, my: 0.5, boxShadow: 0, fontSize: '0.95rem' }}
+                            />
+                          </TableCell>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                    </TableContainer>
-                  </CardContent>
-                </Card>
-              )}
+                      </TableHead>
+                      <TableBody>
+                        {filteredDonations.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={8} sx={{ textAlign: 'center', color: 'text.secondary', py: 4 }}>
+                              No donations found.
+                            </TableCell>
+                          </TableRow>
+                        ) : (
+                          filteredDonations.slice(0, visibleCount).map((donation) => (
+                            <TableRow
+                              key={donation._id}
+                              sx={{ "&:hover": { bgcolor: "rgba(33,110,182,0.05)" }, transition: "background-color 0.3s" }}
+                            >
+                              <TableCell>{donation.donorName || "Anonymous"}</TableCell>
+                              <TableCell>{donation.campaign.title}</TableCell>
+                              <TableCell>{donation.campaign.description}</TableCell>
+                              <TableCell>{donation.campaign.goalAmount ? `₹${donation.campaign.goalAmount.toLocaleString()}` : "N/A"}</TableCell>
+                              <TableCell>₹{donation.amount.toLocaleString()}</TableCell>
+                              <TableCell>
+                                <Chip
+                                  label={donation.referralCode ? "Referral" : "Non-Referral"}
+                                  size="small"
+                                  sx={{
+                                    fontWeight: 600,
+                                    fontSize: "0.8rem",
+                                    color: "white",
+                                    bgcolor: donation.referralCode
+                                      ? "linear-gradient(45deg, #42A5F5 30%, #2196F3 90%)"
+                                      : "linear-gradient(45deg, #FF7043 30%, #F4511E 90%)",
+                                    background: donation.referralCode
+                                      ? "linear-gradient(45deg, #42A5F5 30%, #2196F3 90%)"
+                                      : "linear-gradient(45deg, #FF7043 30%, #F4511E 90%)",
+                                    boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+                                    borderRadius: "16px",
+                                    padding: "0 8px",
+                                    "&:hover": {
+                                      transform: "scale(1.05)",
+                                      boxShadow: "0 4px 8px rgba(0,0,0,0.3)",
+                                    },
+                                    transition: "all 0.2s ease-in-out",
+                                  }}
+                                />
+                              </TableCell>
+                              <TableCell>{donation.referralCode || "N/A"}</TableCell>
+                              <TableCell>{new Date(donation.date).toLocaleDateString()}</TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                  {filteredDonations.length > 0 && visibleCount < filteredDonations.length && (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+                      <Button
+                        variant="contained"
+                        onClick={() => setVisibleCount(c => c + 10)}
+                        sx={{
+                          bgcolor: 'primary.main',
+                          color: 'white',
+                          fontWeight: 600,
+                          borderRadius: 2,
+                          px: 4,
+                          py: 1.2,
+                          fontSize: '1rem',
+                          boxShadow: 2,
+                          '&:hover': { bgcolor: '#1E5FA4' },
+                        }}
+                      >
+                        Show More
+                      </Button>
+                    </Box>
+                  )}
+                </CardContent>
+              </Card>
             </>
           )}
         </Container>
