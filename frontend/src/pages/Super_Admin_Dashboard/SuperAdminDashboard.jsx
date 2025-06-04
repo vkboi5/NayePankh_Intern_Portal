@@ -28,6 +28,7 @@ import {
   ProductionQuantityLimits as OngoingIcon,
   MonetizationOn as DonationsIcon,
   NavigateNext as NavigateNextIcon,
+  Assignment,
 } from "@mui/icons-material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
@@ -56,6 +57,12 @@ const SuperAdminDashboard = () => {
   const [selectedSection, setSelectedSection] = useState("Dashboard");
   const [userDetails, setUserDetails] = useState({ name: "Super Admin", email: "", role: "Super Admin" });
   const [isLoading, setIsLoading] = useState(false);
+  const [dashboardStats, setDashboardStats] = useState({
+    totalCampaigns: null,
+    totalInterns: null,
+    totalDonations: null,
+  });
+  const [statsLoading, setStatsLoading] = useState(true);
   const navigate = useNavigate();
 
   const token = localStorage.getItem("token");
@@ -92,6 +99,39 @@ const SuperAdminDashboard = () => {
 
     fetchUserDetails();
   }, [isLoggedIn]);
+
+  useEffect(() => {
+    const fetchDashboardStats = async () => {
+      setStatsLoading(true);
+      try {
+        // Fetch campaigns count
+        const campaignsRes = await fetch("https://naye-pankh-intern-portal-ox93.vercel.app/api/campaign", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const campaignsData = await campaignsRes.json();
+        // Fetch interns count
+        const internsRes = await fetch("https://naye-pankh-intern-portal-ox93.vercel.app/api/users", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const internsData = await internsRes.json();
+        // Fetch donations sum
+        const donationsRes = await fetch("https://naye-pankh-intern-portal-ox93.vercel.app/api/donations", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const donationsData = await donationsRes.json();
+        setDashboardStats({
+          totalCampaigns: campaignsData.campaigns ? campaignsData.campaigns.length : 0,
+          totalInterns: internsData.users ? internsData.users.filter(u => u.role === 'Intern').length : 0,
+          totalDonations: donationsData.donations ? donationsData.donations.reduce((sum, d) => sum + (d.amount || 0), 0) : 0,
+        });
+      } catch (err) {
+        setDashboardStats({ totalCampaigns: 0, totalInterns: 0, totalDonations: 0 });
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+    fetchDashboardStats();
+  }, [token]);
 
   const handleDrawerToggle = () => setMobileOpen(!mobileOpen);
   const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
@@ -341,7 +381,7 @@ const SuperAdminDashboard = () => {
                     sx={{
                       fontWeight: 800,
                       color: "white",
-                      mt:17,
+                      mt: 17,
                       textShadow: "3px 3px 8px rgba(0,0,0,0.5)",
                       fontSize: { xs: "2rem", sm: "3.5rem" },
                     }}
@@ -362,8 +402,7 @@ const SuperAdminDashboard = () => {
                   </Typography>
                 </Box>
               </Card>
-
-              <Grid container spacing={{ xs: 2, sm: 3, md: 4 }}>
+              <Grid container spacing={{ xs: 2, sm: 3, md: 4 }} sx={{ mb: { xs: 4, sm: 6 } }}>
                 <Grid item xs={12} sm={6} md={4}>
                   <Card
                     sx={{
@@ -371,16 +410,29 @@ const SuperAdminDashboard = () => {
                       borderRadius: 3,
                       boxShadow: "0px 6px 20px rgba(0,0,0,0.1)",
                       bgcolor: "white",
-                      "&:hover": { transform: "translateY(-5px)", boxShadow: "0px 8px 25px rgba(0,0,0,0.15)" },
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      minHeight: 180,
+                      transition: 'all 0.2s',
+                      '&:hover': { transform: 'translateY(-5px)', boxShadow: '0px 8px 25px rgba(0,0,0,0.15)' },
                     }}
                   >
-                    <CardContent sx={{ textAlign: "center" }}>
-                      <Typography variant="h5" sx={{ color: "primary.main", fontWeight: 700, mb: 2 }}>
+                    <Box sx={{ bgcolor: 'primary.main', borderRadius: '50%', p: 2, mb: 2, boxShadow: 2 }}>
+                      <Assignment sx={{ color: 'white', fontSize: 40 }} />
+                    </Box>
+                    <CardContent sx={{ textAlign: "center", p: 0 }}>
+                      <Typography variant="h6" sx={{ color: "primary.main", fontWeight: 700, mb: 1 }}>
                         Total Campaigns
                       </Typography>
-                      <Typography variant="h3" sx={{ color: "primary.main", fontWeight: 800 }}>
-                        42 {/* Replace with API data */}
-                      </Typography>
+                      {statsLoading ? (
+                        <CircularProgress color="primary" size={32} />
+                      ) : (
+                        <Typography variant="h3" sx={{ color: "primary.main", fontWeight: 800 }}>
+                          {dashboardStats.totalCampaigns}
+                        </Typography>
+                      )}
                     </CardContent>
                   </Card>
                 </Grid>
@@ -391,16 +443,29 @@ const SuperAdminDashboard = () => {
                       borderRadius: 3,
                       boxShadow: "0px 6px 20px rgba(0,0,0,0.1)",
                       bgcolor: "white",
-                      "&:hover": { transform: "translateY(-5px)", boxShadow: "0px 8px 25px rgba(0,0,0,0.15)" },
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      minHeight: 180,
+                      transition: 'all 0.2s',
+                      '&:hover': { transform: 'translateY(-5px)', boxShadow: '0px 8px 25px rgba(0,0,0,0.15)' },
                     }}
                   >
-                    <CardContent sx={{ textAlign: "center" }}>
-                      <Typography variant="h5" sx={{ color: "primary.main", fontWeight: 700, mb: 2 }}>
+                    <Box sx={{ bgcolor: 'primary.main', borderRadius: '50%', p: 2, mb: 2, boxShadow: 2 }}>
+                      <PeopleIcon sx={{ color: 'white', fontSize: 40 }} />
+                    </Box>
+                    <CardContent sx={{ textAlign: "center", p: 0 }}>
+                      <Typography variant="h6" sx={{ color: "primary.main", fontWeight: 700, mb: 1 }}>
                         Total Interns
                       </Typography>
-                      <Typography variant="h3" sx={{ color: "primary.main", fontWeight: 800 }}>
-                        15 {/* Replace with API data */}
-                      </Typography>
+                      {statsLoading ? (
+                        <CircularProgress color="primary" size={32} />
+                      ) : (
+                        <Typography variant="h3" sx={{ color: "primary.main", fontWeight: 800 }}>
+                          {dashboardStats.totalInterns}
+                        </Typography>
+                      )}
                     </CardContent>
                   </Card>
                 </Grid>
@@ -411,16 +476,29 @@ const SuperAdminDashboard = () => {
                       borderRadius: 3,
                       boxShadow: "0px 6px 20px rgba(0,0,0,0.1)",
                       bgcolor: "white",
-                      "&:hover": { transform: "translateY(-5px)", boxShadow: "0px 8px 25px rgba(0,0,0,0.15)" },
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      minHeight: 180,
+                      transition: 'all 0.2s',
+                      '&:hover': { transform: 'translateY(-5px)', boxShadow: '0px 8px 25px rgba(0,0,0,0.15)' },
                     }}
                   >
-                    <CardContent sx={{ textAlign: "center" }}>
-                      <Typography variant="h5" sx={{ color: "primary.main", fontWeight: 700, mb: 2 }}>
+                    <Box sx={{ bgcolor: 'primary.main', borderRadius: '50%', p: 2, mb: 2, boxShadow: 2 }}>
+                      <DonationsIcon sx={{ color: 'white', fontSize: 40 }} />
+                    </Box>
+                    <CardContent sx={{ textAlign: "center", p: 0 }}>
+                      <Typography variant="h6" sx={{ color: "primary.main", fontWeight: 700, mb: 1 }}>
                         Total Donations
                       </Typography>
-                      <Typography variant="h3" sx={{ color: "primary.main", fontWeight: 800 }}>
-                        ₹1,50,000 {/* Replace with API data */}
-                      </Typography>
+                      {statsLoading ? (
+                        <CircularProgress color="primary" size={32} />
+                      ) : (
+                        <Typography variant="h3" sx={{ color: "primary.main", fontWeight: 800 }}>
+                          ₹{dashboardStats.totalDonations?.toLocaleString()}
+                        </Typography>
+                      )}
                     </CardContent>
                   </Card>
                 </Grid>
