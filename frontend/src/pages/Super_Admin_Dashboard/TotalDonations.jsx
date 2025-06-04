@@ -240,45 +240,51 @@ const TotalDonations = () => {
                             </TableCell>
                           </TableRow>
                         ) : (
-                          filteredDonations.slice(0, visibleCount).map((donation) => (
-                            <TableRow
-                              key={donation._id}
-                              sx={{ "&:hover": { bgcolor: "rgba(33,110,182,0.05)" }, transition: "background-color 0.3s" }}
-                            >
-                              <TableCell>{donation.donorName || "Anonymous"}</TableCell>
-                              <TableCell>{donation.campaign.title}</TableCell>
-                              <TableCell>{donation.campaign.description}</TableCell>
-                              <TableCell>{donation.campaign.goalAmount ? `₹${donation.campaign.goalAmount.toLocaleString()}` : "N/A"}</TableCell>
-                              <TableCell>₹{donation.amount.toLocaleString()}</TableCell>
-                              <TableCell>
-                                <Chip
-                                  label={donation.referralCode ? "Referral" : "Non-Referral"}
-                                  size="small"
-                                  sx={{
-                                    fontWeight: 600,
-                                    fontSize: "0.8rem",
-                                    color: "white",
-                                    bgcolor: donation.referralCode
-                                      ? "linear-gradient(45deg, #42A5F5 30%, #2196F3 90%)"
-                                      : "linear-gradient(45deg, #FF7043 30%, #F4511E 90%)",
-                                    background: donation.referralCode
-                                      ? "linear-gradient(45deg, #42A5F5 30%, #2196F3 90%)"
-                                      : "linear-gradient(45deg, #FF7043 30%, #F4511E 90%)",
-                                    boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
-                                    borderRadius: "16px",
-                                    padding: "0 8px",
-                                    "&:hover": {
-                                      transform: "scale(1.05)",
-                                      boxShadow: "0 4px 8px rgba(0,0,0,0.3)",
-                                    },
-                                    transition: "all 0.2s ease-in-out",
-                                  }}
-                                />
-                              </TableCell>
-                              <TableCell>{donation.referralCode || "N/A"}</TableCell>
-                              <TableCell>{new Date(donation.date).toLocaleDateString()}</TableCell>
-                            </TableRow>
-                          ))
+                          filteredDonations.slice(0, visibleCount).map((donation) => {
+                            // Use campaignDetails if campaign is missing or is a custom/card-based donation
+                            const campaignInfo = donation.campaign && donation.campaign.title !== 'Custom Donation'
+                              ? donation.campaign
+                              : donation.campaignDetails || { title: 'Custom Donation', description: 'A custom donation without a specific campaign', goalAmount: null };
+                            return (
+                              <TableRow
+                                key={donation._id}
+                                sx={{ "&:hover": { bgcolor: "rgba(33,110,182,0.05)" }, transition: "background-color 0.3s" }}
+                              >
+                                <TableCell>{donation.donorName || "Anonymous"}</TableCell>
+                                <TableCell>{campaignInfo.title}</TableCell>
+                                <TableCell>{campaignInfo.description}</TableCell>
+                                <TableCell>{campaignInfo.goalAmount ? `₹${campaignInfo.goalAmount.toLocaleString()}` : "N/A"}</TableCell>
+                                <TableCell>₹{donation.amount.toLocaleString()}</TableCell>
+                                <TableCell>
+                                  <Chip
+                                    label={donation.referralCode ? "Referral" : "Non-Referral"}
+                                    size="small"
+                                    sx={{
+                                      fontWeight: 600,
+                                      fontSize: "0.8rem",
+                                      color: "white",
+                                      bgcolor: donation.referralCode
+                                        ? "linear-gradient(45deg, #42A5F5 30%, #2196F3 90%)"
+                                        : "linear-gradient(45deg, #FF7043 30%, #F4511E 90%)",
+                                      background: donation.referralCode
+                                        ? "linear-gradient(45deg, #42A5F5 30%, #2196F3 90%)"
+                                        : "linear-gradient(45deg, #FF7043 30%, #F4511E 90%)",
+                                      boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+                                      borderRadius: "16px",
+                                      padding: "0 8px",
+                                      "&:hover": {
+                                        transform: "scale(1.05)",
+                                        boxShadow: "0 4px 8px rgba(0,0,0,0.3)",
+                                      },
+                                      transition: "all 0.2s ease-in-out",
+                                    }}
+                                  />
+                                </TableCell>
+                                <TableCell>{donation.referralCode || "N/A"}</TableCell>
+                                <TableCell>{new Date(donation.date).toLocaleDateString()}</TableCell>
+                              </TableRow>
+                            );
+                          })
                         )}
                       </TableBody>
                     </Table>
