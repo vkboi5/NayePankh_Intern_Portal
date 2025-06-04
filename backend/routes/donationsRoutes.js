@@ -111,4 +111,23 @@ router.get("/leaderboard", authMiddleware, async (req, res) => {
   }
 });
 
+// GET /api/donations/by-referral/:referralCode - Fetch donations by referral code (for Super Admin)
+router.get("/by-referral/:referralCode", authMiddleware, async (req, res) => {
+  try {
+    // Only allow Super Admin to use this endpoint
+    if (req.user.role !== "Super Admin") {
+      return res.status(403).json({ msg: "Access denied" });
+    }
+    const { referralCode } = req.params;
+    const donations = await Donation.find({ referralCode })
+      .populate("campaign", "title description goalAmount")
+      .sort({ date: -1 });
+
+    res.status(200).json({ donations });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: "Server Error" });
+  }
+});
+
 module.exports = router;
