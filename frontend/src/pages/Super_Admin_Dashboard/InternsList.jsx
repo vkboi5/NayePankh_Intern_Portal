@@ -33,6 +33,8 @@ import "react-toastify/dist/ReactToastify.css";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { Dialog as MuiDialog } from "@mui/material";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 
 const InternsList = () => {
   const [interns, setInterns] = useState([]);
@@ -49,6 +51,9 @@ const InternsList = () => {
     internshipPeriod: "1 week", // Default value to keep it controlled
   });
   const token = localStorage.getItem("token");
+  const [donationsModalOpen, setDonationsModalOpen] = useState(false);
+  const [selectedDonations, setSelectedDonations] = useState([]);
+  const [selectedInternName, setSelectedInternName] = useState("");
 
   const internshipPeriods = [
     "1 week",
@@ -73,7 +78,43 @@ const InternsList = () => {
           const internList = data.users.filter(
             (user) => user.role === "Intern"
           );
-          setInterns(internList);
+          
+          // Fetch donations for each intern
+          const internsWithDonations = await Promise.all(
+            internList.map(async (intern) => {
+              try {
+                const donationsResponse = await fetch(
+                  `https://naye-pankh-intern-portal-ox93.vercel.app/api/donations/by-referral/${intern.referralCode}`,
+                  {
+                    headers: {
+                      Authorization: `Bearer ${token}`,
+                    },
+                  }
+                );
+                const donationsData = await donationsResponse.json();
+                const totalDonations = (donationsData.donations || []).reduce(
+                  (sum, donation) => sum + (donation.amount || 0),
+                  0
+                );
+                const stipendAmount = totalDonations * 0.20; // 20% of total donations
+                
+                return {
+                  ...intern,
+                  totalDonations,
+                  stipendAmount,
+                };
+              } catch (error) {
+                console.error(`Error fetching donations for intern ${intern._id}:`, error);
+                return {
+                  ...intern,
+                  totalDonations: 0,
+                  stipendAmount: 0,
+                };
+              }
+            })
+          );
+          
+          setInterns(internsWithDonations);
         } else {
           toast.error(data.msg || "Failed to fetch interns. Please try again.");
         }
@@ -373,6 +414,24 @@ const InternsList = () => {
                             fontSize: { xs: "0.9rem", sm: "1rem" },
                           }}
                         >
+                          Total Amount Raised By Intern
+                        </TableCell>
+                        <TableCell
+                          sx={{
+                            color: "white",
+                            fontWeight: 600,
+                            fontSize: { xs: "0.9rem", sm: "1rem" },
+                          }}
+                        >
+                          Stipend Amount
+                        </TableCell>
+                        <TableCell
+                          sx={{
+                            color: "white",
+                            fontWeight: 600,
+                            fontSize: { xs: "0.9rem", sm: "1rem" },
+                          }}
+                        >
                           Actions
                         </TableCell>
                       </TableRow>
@@ -406,6 +465,54 @@ const InternsList = () => {
                           >
                             {intern.internshipPeriod || "N/A"}{" "}
                             {/* Fallback if missing */}
+                          </TableCell>
+                          <TableCell
+                            sx={{ fontSize: { xs: "0.85rem", sm: "1rem" }, textAlign: 'center' }}
+                          >
+                            <Tooltip title="View all donations" arrow>
+                              <Button
+                                variant="contained"
+                                size="small"
+                                startIcon={<VisibilityIcon />}
+                                sx={{
+                                  bgcolor: 'primary.main',
+                                  color: 'white',
+                                  borderRadius: 2,
+                                  fontWeight: 600,
+                                  px: 2,
+                                  py: 0.5,
+                                  fontSize: { xs: '0.8rem', sm: '0.95rem' },
+                                  minWidth: 'unset',
+                                  boxShadow: 1,
+                                  '&:hover': { bgcolor: '#1E5FA4' },
+                                }}
+                                onClick={async () => {
+                                  setSelectedInternName(`${intern.firstname} ${intern.lastname}`);
+                                  try {
+                                    const donationsResponse = await fetch(
+                                      `https://naye-pankh-intern-portal-ox93.vercel.app/api/donations/by-referral/${intern.referralCode}`,
+                                      {
+                                        headers: {
+                                          Authorization: `Bearer ${token}`,
+                                        },
+                                      }
+                                    );
+                                    const donationsData = await donationsResponse.json();
+                                    setSelectedDonations(donationsData.donations || []);
+                                    setDonationsModalOpen(true);
+                                  } catch (error) {
+                                    toast.error("Failed to fetch donations for this intern.");
+                                  }
+                                }}
+                              >
+                                ₹{intern.totalDonations?.toLocaleString() || 0}
+                              </Button>
+                            </Tooltip>
+                          </TableCell>
+                          <TableCell
+                            sx={{ fontSize: { xs: "0.85rem", sm: "1rem" } }}
+                          >
+                            ₹{intern.stipendAmount?.toLocaleString() || 0}
                           </TableCell>
                           <TableCell>
                             <Tooltip
@@ -781,6 +888,124 @@ const InternsList = () => {
             </Button>
           </DialogActions>
         </Dialog>
+
+        <MuiDialog
+          open={donationsModalOpen}
+          onClose={() => setDonationsModalOpen(false)}
+          maxWidth="md"
+          fullWidth
+          PaperProps={{
+            sx: {
+              borderRadius: 3,
+              boxShadow: 6,
+              m: { xs: 1, sm: 3 },
+              bgcolor: 'background.default',
+            },
+          }}
+        >
+          <DialogTitle
+            sx={{
+              bgcolor: 'primary.main',
+              color: 'white',
+              fontWeight: 700,
+              fontSize: { xs: '1.2rem', sm: '1.5rem' },
+              letterSpacing: 1,
+              textAlign: 'center',
+              py: 2,
+              borderTopLeftRadius: 12,
+              borderTopRightRadius: 12,
+              mb: 2,
+            }}
+          >
+            Donations Raised by {selectedInternName}
+          </DialogTitle>
+          <DialogContent
+            sx={{
+              bgcolor: 'background.default',
+              px: { xs: 1, sm: 4 },
+              pt: 0,
+              pb: 2,
+              borderBottomLeftRadius: 12,
+              borderBottomRightRadius: 12,
+              minHeight: 120,
+              maxHeight: { xs: 350, sm: 500 },
+              overflowY: 'auto',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'stretch',
+            }}
+          >
+            {selectedDonations.length === 0 ? (
+              <Typography sx={{ color: 'text.secondary', textAlign: 'center', py: 4 }}>
+                No donations found for this intern.
+              </Typography>
+            ) : (
+              <TableContainer
+                component={Paper}
+                sx={{
+                  boxShadow: 3,
+                  borderRadius: 2,
+                  overflowX: 'auto',
+                  maxWidth: '100%',
+                  p: { xs: 1, sm: 2 },
+                }}
+              >
+                <Table size="small" sx={{ minWidth: 500 }}>
+                  <TableHead>
+                    <TableRow sx={{ bgcolor: 'primary.main', position: 'sticky', top: 0, zIndex: 1 }}>
+                      <TableCell sx={{ color: 'white', fontWeight: 600, py: 1.5 }}>Donor Name</TableCell>
+                      <TableCell sx={{ color: 'white', fontWeight: 600, py: 1.5 }}>Email</TableCell>
+                      <TableCell sx={{ color: 'white', fontWeight: 600, py: 1.5 }}>Amount</TableCell>
+                      <TableCell sx={{ color: 'white', fontWeight: 600, py: 1.5 }}>Date</TableCell>
+                      <TableCell sx={{ color: 'white', fontWeight: 600, py: 1.5 }}>Campaign Title</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {selectedDonations.map((donation, idx) => (
+                      <TableRow
+                        key={idx}
+                        sx={{
+                          bgcolor: idx % 2 === 0 ? 'background.paper' : 'rgba(33,110,182,0.04)',
+                          '&:hover': { bgcolor: 'rgba(33,110,182,0.10)' },
+                          transition: 'background-color 0.2s',
+                          borderRadius: 2,
+                        }}
+                      >
+                        <TableCell sx={{ py: 1.2 }}>{donation.donorName || (donation.donor ? `${donation.donor.firstname} ${donation.donor.lastname}` : "-")}</TableCell>
+                        <TableCell sx={{ py: 1.2 }}>{donation.email || "-"}</TableCell>
+                        <TableCell sx={{ fontWeight: 600, color: 'primary.main', py: 1.2 }}>₹{donation.amount?.toLocaleString() || 0}</TableCell>
+                        <TableCell sx={{ py: 1.2 }}>{donation.date ? new Date(donation.date).toLocaleDateString() : "-"}</TableCell>
+                        <TableCell sx={{ py: 1.2 }}>{donation.campaign?.title || donation.campaignDetails?.title || "-"}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            )}
+          </DialogContent>
+          <DialogActions sx={{ bgcolor: 'background.default', p: 2, justifyContent: 'center', borderBottomLeftRadius: 12, borderBottomRightRadius: 12 }}>
+            <Button
+              onClick={() => setDonationsModalOpen(false)}
+              variant="contained"
+              sx={{
+                bgcolor: 'primary.main',
+                color: 'white',
+                fontWeight: 600,
+                borderRadius: 2,
+                px: 4,
+                py: 1.2,
+                fontSize: '1rem',
+                boxShadow: 2,
+                '&:hover': { bgcolor: '#1E5FA4' },
+                width: { xs: '100%', sm: 'auto' },
+                maxWidth: 300,
+              }}
+              fullWidth={true}
+            >
+              Close
+            </Button>
+          </DialogActions>
+        </MuiDialog>
 
         <ToastContainer position="top-right" autoClose={3000} />
       </Box>
