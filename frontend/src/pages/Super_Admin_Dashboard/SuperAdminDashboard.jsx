@@ -19,6 +19,7 @@ import {
   Avatar,
   Popover,
   ListItemButton as PopoverListItemButton,
+  Divider,
 } from "@mui/material";
 import {
   Menu as MenuIcon,
@@ -37,6 +38,7 @@ import CreateCampaigns from "./CreateCampaign";
 import InternsList from "./InternsList";
 import OngoingCampaigns from "./OngoingCampaigns";
 import TotalDonations from "./TotalDonations";
+import CampaignsInfo from "./CampaignsInfo";
 
 const drawerWidth = 260;
 
@@ -153,6 +155,7 @@ const SuperAdminDashboard = () => {
     { text: "Interns Info", icon: <PeopleIcon /> },
     { text: "Ongoing Campaigns", icon: <OngoingIcon /> },
     { text: "Total Donations", icon: <DonationsIcon /> },
+    { text: "Campaigns Info", icon: <OngoingIcon /> },
   ];
 
   const drawerContent = (
@@ -509,18 +512,32 @@ const SuperAdminDashboard = () => {
           {selectedSection === "Interns Info" && <InternsList />}
           {selectedSection === "Ongoing Campaigns" && <OngoingCampaigns />}
           {selectedSection === "Total Donations" && <TotalDonations />}
+          {selectedSection === "Campaigns Info" && <CampaignsInfo />}
 
+          <Divider sx={{ my: { xs: 2, sm: 3 }, bgcolor: 'primary.main', opacity: 0.10 }} />
           <Box
             component="footer"
             sx={{
-              mt: "auto",
-              py: 2,
-              textAlign: "center",
-              bgcolor: "primary.main",
-              color: "white",
+              mt: 'auto',
+              py: 3,
+              px: { xs: 2, sm: 4 },
+              textAlign: 'center',
+              bgcolor: 'white',
+              color: 'primary.main',
+              boxShadow: '0px -4px 32px 0px rgba(33,110,182,0.07)',
+              fontWeight: 500,
+              letterSpacing: 0.5,
+              fontSize: { xs: '0.95rem', sm: '1.05rem' },
+              borderRadius: '22px 22px 0 0',
+              maxWidth: 700,
+              mx: 'auto',
+              mb: 2,
+              background: 'linear-gradient(180deg, #fafdff 60%, #e3f2fd 100%)',
+              transition: 'box-shadow 0.2s',
             }}
           >
-            <Typography variant="body2" sx={{ fontSize: { xs: "0.8rem", sm: "0.9rem" } }}>
+            <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+              <span style={{ fontSize: '1.2em', color: '#1976d2', fontWeight: 700, marginRight: 4 }}>🌱</span>
               © {new Date().getFullYear()} NayePankh Foundation. All rights reserved.
             </Typography>
           </Box>
