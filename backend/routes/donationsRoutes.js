@@ -27,8 +27,7 @@ const authMiddleware = async (req, res, next) => {
 router.get("/", authMiddleware, async (req, res) => {
   try {
     let donations;
-
-    if (req.user.role === "Super Admin") {
+    if (req.user.role === "Super Admin" || req.user.role === "Admin") {
       donations = await Donation.find()
         .populate("campaign", "title description goalAmount")
         .populate("donor", "firstname lastname referralCode")
@@ -38,15 +37,13 @@ router.get("/", authMiddleware, async (req, res) => {
         .populate("campaign", "title description goalAmount")
         .sort({ date: -1 });
     }
-
     if (!donations.length) {
       return res.status(404).json({
-        msg: req.user.role === "Super Admin"
+        msg: req.user.role === "Super Admin" || req.user.role === "Admin"
           ? "No donations found"
           : "No donations found for your referral code"
       });
     }
-
     // Enhance response with campaign details
     const enhancedDonations = donations.map(donation => ({
       ...donation._doc,
@@ -58,7 +55,6 @@ router.get("/", authMiddleware, async (req, res) => {
           }
         : donation.campaignDetails
     }));
-
     res.status(200).json({ donations: enhancedDonations, msg: "Donations retrieved successfully" });
   } catch (err) {
     console.error('Error fetching donations:', err);
@@ -94,8 +90,8 @@ router.get("/leaderboard", authMiddleware, async (req, res) => {
 // Returns: { donations: [...] }
 router.get("/by-referral/:referralCode", authMiddleware, async (req, res) => {
   try {
-    if (req.user.role !== "Super Admin") {
-      return res.status(403).json({ msg: "Access denied. Only Super Admin can access this endpoint." });
+    if (req.user.role !== "Super Admin" && req.user.role !== "Admin") {
+      return res.status(403).json({ msg: "Access denied. Only Super Admin or Moderator can access this endpoint." });
     }
     const { referralCode } = req.params;
     if (!referralCode) {

@@ -38,8 +38,17 @@ const ModeratorAdminMiddleware = (req, res, next) => {
   next();
 };
 
+// Moderator View Middleware (allows Super Admin and Admin for view-only routes)
+const moderatorViewMiddleware = (req, res, next) => {
+  if (!req.user || (req.user.role !== "Super Admin" && req.user.role !== "Admin")) {
+    return res.status(403).json({ msg: "Access denied: Super Admin or Moderator only" });
+  }
+  next();
+};
+
 module.exports = {
   authMiddleware,
   superAdminMiddleware,
-  ModeratorAdminMiddleware
+  ModeratorAdminMiddleware,
+  moderatorViewMiddleware
 };

@@ -4,14 +4,15 @@ const bcrypt = require("bcryptjs");
 const {
   authMiddleware,
   superAdminMiddleware,
+  moderatorViewMiddleware,
 } = require("../middleware/authMiddleware");
 const User = require("../models/User");
 
 const router = express.Router();
 
-// GET /api/users - Fetch all users (Super Admin only)
+// GET /api/users - Fetch all users (Super Admin and Moderator only)
 // Returns: { users: [userObj, ...] }
-router.get("/", [authMiddleware, superAdminMiddleware], async (req, res) => {
+router.get("/", [authMiddleware, moderatorViewMiddleware], async (req, res) => {
   try {
     const users = await User.find().select("-password");
     res.status(200).json({ users });
