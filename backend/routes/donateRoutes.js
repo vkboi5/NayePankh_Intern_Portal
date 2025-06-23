@@ -12,6 +12,7 @@ const razorpay = new Razorpay({
 });
 
 // GET /api/donate/public - Fetch all active campaigns (public access)
+// Returns: { campaigns: [...], msg }
 router.get("/public", async (req, res) => {
   try {
     const campaigns = await Campaign.find({
@@ -24,15 +25,19 @@ router.get("/public", async (req, res) => {
 
     res.status(200).json({ campaigns, msg: "Campaigns retrieved successfully" });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ msg: "Server Error" });
+    console.error('Error fetching public campaigns:', err);
+    res.status(500).json({ msg: "Server Error fetching public campaigns", error: err.message });
   }
 });
 
 // GET /api/donate/:referralCode - Fetch campaigns with referral code
+// Returns: { campaigns: [...], msg }
 router.get("/:referralCode", async (req, res) => {
   try {
     const { referralCode } = req.params;
+    if (!referralCode) {
+      return res.status(400).json({ msg: "Missing referralCode parameter", missing: ["referralCode"] });
+    }
     const user = await User.findOne({ referralCode });
     if (!user) {
       return res.status(400).json({ msg: "Invalid referral code" });
@@ -48,15 +53,26 @@ router.get("/:referralCode", async (req, res) => {
 
     res.status(200).json({ campaigns, msg: "Campaigns retrieved successfully" });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ msg: "Server Error" });
+    console.error('Error fetching campaigns by referral code:', err);
+    res.status(500).json({ msg: "Server Error fetching campaigns by referral code", error: err.message });
   }
 });
 
 // POST /api/donate - Create donation order
-// In donateRoutes.js
+// Body: { donorName, amount, campaignId?, referralCode?, email, phoneNumber, campaignDetails? }
+// Returns: { orderId, amount, msg }
 router.post("/", async (req, res) => {
   const { donorName, amount, campaignId, referralCode, email, phoneNumber, campaignDetails } = req.body;
+
+  // Validate required fields
+  const missing = [];
+  if (!donorName) missing.push("donorName");
+  if (!amount) missing.push("amount");
+  if (!email) missing.push("email");
+  if (!phoneNumber) missing.push("phoneNumber");
+  if (missing.length) {
+    return res.status(400).json({ msg: "Missing required fields", missing });
+  }
 
   try {
     let campaign = null;
@@ -73,7 +89,6 @@ router.post("/", async (req, res) => {
       }
       // If campaign exists, don't use campaignDetails from request
     } else if (campaignDetails) {
-      // Use provided campaignDetails for custom/static donations
       donationCampaignDetails = {
         title: campaignDetails.title || "Custom Donation",
         description: campaignDetails.description || "A custom donation without a specific campaign",
@@ -102,7 +117,7 @@ router.post("/", async (req, res) => {
       donor: donor ? donor._id : null,
       amount: amount / 100,
       campaign: campaignId || null,
-      campaignDetails: campaignId ? undefined : donationCampaignDetails, // Only set if no campaignId
+      campaignDetails: campaignId ? undefined : donationCampaignDetails,
       referralCode: referralCode || null,
       paymentId: order.id,
       paymentStatus: "pending",
@@ -116,12 +131,14 @@ router.post("/", async (req, res) => {
       msg: "Donation order created successfully",
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ msg: "Server Error" });
+    console.error('Error creating donation order:', err);
+    res.status(500).json({ msg: "Server Error creating donation order", error: err.message });
   }
 });
 
 // POST /api/donate/verify - Verify payment
+// Body: { razorpay_order_id, razorpay_payment_id, razorpay_signature, donorName, amount, campaignId?, referralCode?, email, phoneNumber }
+// Returns: { msg }
 router.post("/verify", async (req, res) => {
   const {
     razorpay_order_id,
@@ -134,6 +151,19 @@ router.post("/verify", async (req, res) => {
     email,
     phoneNumber,
   } = req.body;
+
+  // Validate required fields
+  const missing = [];
+  if (!razorpay_order_id) missing.push("razorpay_order_id");
+  if (!razorpay_payment_id) missing.push("razorpay_payment_id");
+  if (!razorpay_signature) missing.push("razorpay_signature");
+  if (!donorName) missing.push("donorName");
+  if (!amount) missing.push("amount");
+  if (!email) missing.push("email");
+  if (!phoneNumber) missing.push("phoneNumber");
+  if (missing.length) {
+    return res.status(400).json({ msg: "Missing required fields", missing });
+  }
 
   try {
     if (!process.env.RAZORPAY_TEST_KEY_SECRET) {
@@ -171,8 +201,8 @@ router.post("/verify", async (req, res) => {
 
     res.status(200).json({ msg: "Payment verified and donation recorded successfully" });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ msg: "Server Error" });
+    console.error('Error verifying payment:', err);
+    res.status(500).json({ msg: "Server Error verifying payment no API keys", error: err.message });
   }
 });
 

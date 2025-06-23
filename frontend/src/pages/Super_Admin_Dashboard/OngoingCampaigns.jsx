@@ -231,14 +231,10 @@ const OngoingCampaigns = () => {
       );
       const data = await response.json();
       if (response.ok) {
-        setCampaigns(
-          campaigns.map((c) =>
-            c._id === selectedCampaign._id ? data.campaign : c
-          )
-        );
         toast.success("Campaign extended successfully");
         setExtendDialogOpen(false);
         setExtendDuration("");
+        fetchCampaigns(); // <-- Re-fetch all campaigns after extension
       } else {
         toast.error(data.msg || "Failed to extend campaign");
       }

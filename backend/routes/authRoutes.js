@@ -24,13 +24,20 @@ const authMiddleware = async (req, res, next) => {
 router.post("/signup", async (req, res) => {
   const { firstname, lastname, email, password, internshipPeriod } = req.body;
 
-  try {
-    if (!firstname || !lastname || !email || !password || !internshipPeriod) {
-      return res.status(400).json({ msg: "All fields are required" });
-    }
+  // Validate required fields
+  const missing = [];
+  if (!firstname) missing.push("firstname");
+  if (!lastname) missing.push("lastname");
+  if (!email) missing.push("email");
+  if (!password) missing.push("password");
+  if (!internshipPeriod) missing.push("internshipPeriod");
+  if (missing.length) {
+    return res.status(400).json({ msg: "Missing required fields", missing });
+  }
 
-    let user = await User.findOne({ email });
-    if (user) {
+  try {
+    let userExists = await User.findOne({ email });
+    if (userExists) {
       return res.status(400).json({ msg: "User already exists" });
     }
 
@@ -42,14 +49,11 @@ router.post("/signup", async (req, res) => {
       if (!existingUser) isUnique = true;
     }
 
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    user = new User({
+    const user = new User({
       firstname,
       lastname,
       email,
-      password: hashedPassword,
+      password,
       referralCode,
       internshipPeriod,
     });
@@ -68,14 +72,34 @@ router.post("/signup", async (req, res) => {
         user: { id: user.id, firstname, lastname, email, referralCode },
       });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ msg: "Server Error" });
+    if (err.name === 'ValidationError') {
+      const internshipPeriodEnum = ["1 week", "2 weeks", "1 month", "3 months", "6 months"];
+      const errors = Object.values(err.errors).map(e => {
+        const errorObj = { field: e.path, message: e.message };
+        if (e.path === 'internshipPeriod' && e.kind === 'enum') {
+          errorObj.validValues = internshipPeriodEnum;
+        }
+        return errorObj;
+      });
+      return res.status(400).json({ msg: "Validation Error", errors });
+    }
+    console.error('Signup error:', err);
+    res.status(500).json({ msg: "Server Error", error: err.message });
   }
 });
 
 // Login Route
 router.post("/login", async (req, res) => {
   let { email, password } = req.body;
+
+  // Validate required fields
+  const missing = [];
+  if (!email) missing.push("email");
+  if (!password) missing.push("password");
+  if (missing.length) {
+    return res.status(400).json({ msg: "Missing required fields", missing });
+  }
+
   email = email.toLowerCase();
 
   try {
@@ -87,12 +111,12 @@ router.post("/login", async (req, res) => {
 
     const payload = { id: user._id, role: user.role }; // Include role
     const token = jwt.sign(payload, process.env.JWT_SECRET, {
-      expiresIn: "7d",
+      expiresIn: "1h",
     });
-    res.json({ token, user });
+    res.json({ msg: "Login successful", token, user });
   } catch (err) {
-    console.error(err);
-    res.status(500).send("Server Error");
+    console.error('Login error:',err);
+    res.status(500).json({ msg: "Server error during login", error: err.message });
   }
 });
 
@@ -102,8 +126,8 @@ router.get("/user", authMiddleware, async (req, res) => {
     const user = await User.findById(req.user.id).select("-password");
     res.status(200).json({ user });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ msg: "Server Error" });
+    console.error('Get user error:',err);
+    res.status(500).json({ msg: "Server Error", error: err.message });
   }
 });
 
