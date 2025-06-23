@@ -83,7 +83,7 @@ const ModeratorDashboard = () => {
         const data = await response.json();
         if (response.ok) {
           setUserDetails({
-            name: `${data.user.firstname} ${data.user.lastname}`,
+            name: ` ${data.user.lastname}`,
             email: data.user.email,
             role: data.user.role,
           });
@@ -386,7 +386,7 @@ const ModeratorDashboard = () => {
                       fontSize: { xs: "2rem", sm: "3.5rem" },
                     }}
                   >
-                    Hello, Admin!
+                    Hello, {userDetails.name}!
                   </Typography>
                   <Typography
                     variant="h6"
