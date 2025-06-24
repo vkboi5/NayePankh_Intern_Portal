@@ -99,12 +99,10 @@ const Register = () => {
       } else if (response.ok && data.token) {
         // Admin/Super Admin
         localStorage.setItem("token", data.token);
-        toast.success("Successfully registered!", {
-          onClose: () => {
-            setLoading(false);
-            window.location.href = "/dashboard";
-          },
-        });
+        toast.success("Registration successful!");
+        setLoading(false);
+        // Redirect immediately
+        window.location.href = "/dashboard";
       } else {
         toast.error(data.msg || "Registration failed");
         setLoading(false);
@@ -127,14 +125,12 @@ const Register = () => {
       const data = await response.json();
       if (response.ok) {
         setStep(3);
-        toast.success("Registration verified! Redirecting to login page...", {
-          onClose: () => {
-            setLoading(false);
-            setTimeout(() => {
-              window.location.href = "/login";
-            }, 2000);
-          },
-        });
+        toast.success("Registration verified! Redirecting to login page...");
+        setLoading(false);
+        // Redirect immediately with a short delay for user to see the message
+        setTimeout(() => {
+          window.location.href = "/login";
+        }, 1000);
       } else {
         toast.error(data.msg || "OTP verification failed");
         setLoading(false);
@@ -478,7 +474,18 @@ const Register = () => {
             </Box>
           </Card>
         </Container>
-        <ToastContainer />
+        <ToastContainer 
+          position="top-right"
+          autoClose={2000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover={false}
+          theme="colored"
+        />
       </Box>
     </ThemeProvider>
   );

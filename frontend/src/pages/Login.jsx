@@ -10,6 +10,7 @@ import {
   Grid,
   Container,
   CircularProgress,
+  InputAdornment,
 } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { ToastContainer, toast } from "react-toastify";
@@ -83,14 +84,12 @@ const Login = () => {
           const decoded = jwtDecode(data.token);
           role = decoded.role;
         }
-        toast.success("Successfully logged in!", {
-          onClose: () => {
-            setLoading(false);
-            if (role === "Super Admin") navigate("/superadmin");
-            else if (role === "Admin") navigate("/moderator");
-            else navigate("/dashboard");
-          },
-        });
+        toast.success("Login successful!");
+        setLoading(false);
+        // Redirect immediately
+        if (role === "Super Admin") navigate("/superadmin");
+        else if (role === "Admin") navigate("/moderator");
+        else navigate("/dashboard");
       } else {
         toast.error(data.msg || "Login failed");
         setLoading(false);
@@ -114,12 +113,10 @@ const Login = () => {
       const data = await response.json();
       if (response.ok && data.token) {
         localStorage.setItem("token", data.token);
-        toast.success("Login successful!", {
-          onClose: () => {
-            setLoading(false);
-            navigate("/dashboard");
-          },
-        });
+        toast.success("Login successful!");
+        setLoading(false);
+        // Redirect immediately
+        navigate("/dashboard");
       } else {
         toast.error(data.msg || "OTP verification failed");
         setLoading(false);
@@ -204,14 +201,44 @@ const Login = () => {
                       <Grid item xs={12}>
                         <TextField
                           fullWidth
-                          label="Email"
+                          label="Gmail Address"
                           name="email"
                           variant="outlined"
                           value={formData.email}
                           onChange={handleInputChange}
                           required
                           type="email"
-                          helperText={validateGmail(formData.email) ? "Gmail address detected (Intern)" : "Regular email (Admin/Super Admin)"}
+                          placeholder="Enter your Gmail address"
+                          InputProps={{
+                            endAdornment: (
+                              <InputAdornment position="end">
+                                {formData.email && validateGmail(formData.email) && (
+                                  <Box
+                                    component="img"
+                                    src="https://upload.wikimedia.org/wikipedia/commons/7/7e/Gmail_icon_%282020%29.svg"
+                                    alt="Gmail"
+                                    sx={{
+                                      width: 24,
+                                      height: 24,
+                                      opacity: 1,
+                                    }}
+                                  />
+                                )}
+                                {!formData.email && (
+                                  <Box
+                                    component="img"
+                                    src="https://upload.wikimedia.org/wikipedia/commons/7/7e/Gmail_icon_%282020%29.svg"
+                                    alt="Gmail"
+                                    sx={{
+                                      width: 24,
+                                      height: 24,
+                                      opacity: 0.3,
+                                    }}
+                                  />
+                                )}
+                              </InputAdornment>
+                            ),
+                          }}
                           sx={{
                             "& .MuiOutlinedInput-root": {
                               "&:hover fieldset": { borderColor: "primary.main" },
@@ -346,7 +373,18 @@ const Login = () => {
             </Box>
           </Card>
         </Container>
-        <ToastContainer />
+        <ToastContainer 
+          position="top-right"
+          autoClose={2000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover={false}
+          theme="colored"
+        />
       </Box>
     </ThemeProvider>
   );
