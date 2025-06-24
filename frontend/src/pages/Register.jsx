@@ -14,6 +14,7 @@ import {
   InputLabel,
   FormControl,
   CircularProgress,
+  InputAdornment,
 } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { ToastContainer, toast } from "react-toastify";
@@ -58,16 +59,31 @@ const Register = () => {
     password: "",
     internshipPeriod: "",
   });
-  const [loading, setLoading] = useState(false); // Loader state
+  const [otp, setOtp] = useState("");
+  const [step, setStep] = useState(1); // 1: form, 2: otp, 3: done
+  const [internEmail, setInternEmail] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const validateGmail = (email) => {
+    const gmailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+    return gmailRegex.test(email);
+  };
+
   const handleRegister = async (e) => {
     e.preventDefault();
-    setLoading(true); // Show loader at the start
+    
+    // Validate Gmail for interns (default role)
+    if (!validateGmail(formData.email)) {
+      toast.error("Please use a valid Gmail address for intern registration.");
+      return;
+    }
+    
+    setLoading(true);
     try {
       const response = await fetch("https://naye-pankh-intern-portal-ox93.vercel.app/api/auth/signup", {
         method: "POST",
@@ -75,38 +91,58 @@ const Register = () => {
         body: JSON.stringify(formData),
       });
       const data = await response.json();
-      if (response.ok) {
+      if (response.ok && data.msg && data.msg.includes("OTP sent")) {
+        setInternEmail(formData.email);
+        setStep(2); // Show OTP input
+        toast.info("OTP sent to your email. Please verify.");
+        setLoading(false);
+      } else if (response.ok && data.token) {
+        // Admin/Super Admin
         localStorage.setItem("token", data.token);
         toast.success("Successfully registered!", {
-          position: "top-right",
-          autoClose: 2000, // Toast visible for 2 seconds
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          theme: "colored",
           onClose: () => {
-            setLoading(false); // Stop loader only after toast closes
-            window.location.href = "/dashboard"; // Redirect after toast
-          }, // Redirect when toast closes
+            setLoading(false);
+            window.location.href = "/dashboard";
+          },
         });
       } else {
-        console.error(data.msg);
-        toast.error(data.msg || "Registration failed", {
-          position: "top-right",
-          autoClose: 2000,
-          onClose: () => setLoading(false), // Stop loader after error toast
-        });
+        toast.error(data.msg || "Registration failed");
+        setLoading(false);
       }
     } catch (error) {
-      console.error("Registration error:", error);
-      toast.error("An error occurred. Please try again.", {
-        position: "top-right",
-        autoClose: 2000,
-        onClose: () => setLoading(false), // Stop loader after error toast
-      });
+      toast.error("An error occurred. Please try again.");
+      setLoading(false);
     }
-    // Note: Removed the `finally` block to control loader via toast `onClose`
+  };
+
+  const handleOtpSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const response = await fetch("https://naye-pankh-intern-portal-ox93.vercel.app/api/auth/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: internEmail, otp }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setStep(3);
+        toast.success("Registration verified! Redirecting to login page...", {
+          onClose: () => {
+            setLoading(false);
+            setTimeout(() => {
+              window.location.href = "/login";
+            }, 2000);
+          },
+        });
+      } else {
+        toast.error(data.msg || "OTP verification failed");
+        setLoading(false);
+      }
+    } catch (error) {
+      toast.error("An error occurred. Please try again.");
+      setLoading(false);
+    }
   };
 
   return (
@@ -191,190 +227,259 @@ const Register = () => {
                 </Typography>
               </Box>
               <CardContent sx={{ p: { xs: 2, sm: 4 } }}>
-                <Box component="form" onSubmit={handleRegister}>
-                  <Grid container spacing={{ xs: 2, sm: 3 }}>
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        fullWidth
-                        label="First Name"
-                        name="firstname"
-                        variant="outlined"
-                        value={formData.firstname}
-                        onChange={handleInputChange}
-                        required
-                        sx={{
-                          "& .MuiOutlinedInput-root": {
-                            "&:hover fieldset": { borderColor: "primary.main" },
-                            "&.Mui-focused fieldset": { borderColor: "primary.main" },
-                          },
-                          "& .MuiInputLabel-root": {
-                            color: "primary.main",
-                            fontSize: { xs: "0.9rem", sm: "1rem" },
-                          },
-                          "& .MuiInputLabel-root.Mui-focused": { color: "primary.main" },
-                        }}
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        fullWidth
-                        label="Last Name"
-                        name="lastname"
-                        variant="outlined"
-                        value={formData.lastname}
-                        onChange={handleInputChange}
-                        required
-                        sx={{
-                          "& .MuiOutlinedInput-root": {
-                            "&:hover fieldset": { borderColor: "primary.main" },
-                            "&.Mui-focused fieldset": { borderColor: "primary.main" },
-                          },
-                          "& .MuiInputLabel-root": {
-                            color: "primary.main",
-                            fontSize: { xs: "0.9rem", sm: "1rem" },
-                          },
-                          "& .MuiInputLabel-root.Mui-focused": { color: "primary.main" },
-                        }}
-                      />
-                    </Grid>
-                    <Grid item xs={12}>
-                      <TextField
-                        fullWidth
-                        label="Email"
-                        name="email"
-                        variant="outlined"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        required
-                        type="email"
-                        sx={{
-                          "& .MuiOutlinedInput-root": {
-                            "&:hover fieldset": { borderColor: "primary.main" },
-                            "&.Mui-focused fieldset": { borderColor: "primary.main" },
-                          },
-                          "& .MuiInputLabel-root": {
-                            color: "primary.main",
-                            fontSize: { xs: "0.9rem", sm: "1rem" },
-                          },
-                          "& .MuiInputLabel-root.Mui-focused": { color: "primary.main" },
-                        }}
-                      />
-                    </Grid>
-                    <Grid item xs={12}>
-                      <TextField
-                        fullWidth
-                        label="Password"
-                        name="password"
-                        variant="outlined"
-                        value={formData.password}
-                        onChange={handleInputChange}
-                        required
-                        type="password"
-                        sx={{
-                          "& .MuiOutlinedInput-root": {
-                            "&:hover fieldset": { borderColor: "primary.main" },
-                            "&.Mui-focused fieldset": { borderColor: "primary.main" },
-                          },
-                          "& .MuiInputLabel-root": {
-                            color: "primary.main",
-                            fontSize: { xs: "0.9rem", sm: "1rem" },
-                          },
-                          "& .MuiInputLabel-root.Mui-focused": { color: "primary.main" },
-                        }}
-                      />
-                    </Grid>
-                    <Grid item xs={12}>
-                      <FormControl fullWidth required>
-                        <InputLabel
-                          sx={{
-                            color: "primary.main",
-                            fontSize: { xs: "0.9rem", sm: "1rem" },
-                            "&.Mui-focused": { color: "primary.main" },
-                          }}
-                        >
-                          Internship Period
-                        </InputLabel>
-                        <Select
-                          name="internshipPeriod"
-                          value={formData.internshipPeriod}
-                          onChange={handleInputChange}
+                {step === 1 && (
+                  <Box component="form" onSubmit={handleRegister}>
+                    <Grid container spacing={{ xs: 2, sm: 3 }}>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          fullWidth
+                          label="First Name"
+                          name="firstname"
                           variant="outlined"
+                          value={formData.firstname}
+                          onChange={handleInputChange}
+                          required
                           sx={{
-                            "& .MuiOutlinedInput-notchedOutline": {
-                              borderColor: "grey.500",
-                              "&:hover": { borderColor: "primary.main" },
+                            "& .MuiOutlinedInput-root": {
+                              "&:hover fieldset": { borderColor: "primary.main" },
+                              "&.Mui-focused fieldset": { borderColor: "primary.main" },
                             },
-                            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                              borderColor: "primary.main",
+                            "& .MuiInputLabel-root": {
+                              color: "primary.main",
+                              fontSize: { xs: "0.9rem", sm: "1rem" },
                             },
+                            "& .MuiInputLabel-root.Mui-focused": { color: "primary.main" },
+                          }}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          fullWidth
+                          label="Last Name"
+                          name="lastname"
+                          variant="outlined"
+                          value={formData.lastname}
+                          onChange={handleInputChange}
+                          required
+                          sx={{
+                            "& .MuiOutlinedInput-root": {
+                              "&:hover fieldset": { borderColor: "primary.main" },
+                              "&.Mui-focused fieldset": { borderColor: "primary.main" },
+                            },
+                            "& .MuiInputLabel-root": {
+                              color: "primary.main",
+                              fontSize: { xs: "0.9rem", sm: "1rem" },
+                            },
+                            "& .MuiInputLabel-root.Mui-focused": { color: "primary.main" },
+                          }}
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <TextField
+                          fullWidth
+                          label="Gmail Address"
+                          name="email"
+                          variant="outlined"
+                          value={formData.email}
+                          onChange={handleInputChange}
+                          required
+                          type="email"
+                          helperText="Please use your Gmail address for intern registration"
+                          InputProps={{
+                            endAdornment: (
+                              <InputAdornment position="end">
+                                <Box
+                                  component="img"
+                                  src="https://upload.wikimedia.org/wikipedia/commons/7/7e/Gmail_icon_%282020%29.svg"
+                                  alt="Gmail"
+                                  sx={{
+                                    width: 24,
+                                    height: 24,
+                                    opacity: validateGmail(formData.email) ? 1 : 0.5,
+                                  }}
+                                />
+                              </InputAdornment>
+                            ),
+                          }}
+                          sx={{
+                            "& .MuiOutlinedInput-root": {
+                              "&:hover fieldset": { borderColor: "primary.main" },
+                              "&.Mui-focused fieldset": { borderColor: "primary.main" },
+                            },
+                            "& .MuiInputLabel-root": {
+                              color: "primary.main",
+                              fontSize: { xs: "0.9rem", sm: "1rem" },
+                            },
+                            "& .MuiInputLabel-root.Mui-focused": { color: "primary.main" },
+                          }}
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <TextField
+                          fullWidth
+                          label="Password"
+                          name="password"
+                          variant="outlined"
+                          value={formData.password}
+                          onChange={handleInputChange}
+                          required
+                          type="password"
+                          sx={{
+                            "& .MuiOutlinedInput-root": {
+                              "&:hover fieldset": { borderColor: "primary.main" },
+                              "&.Mui-focused fieldset": { borderColor: "primary.main" },
+                            },
+                            "& .MuiInputLabel-root": {
+                              color: "primary.main",
+                              fontSize: { xs: "0.9rem", sm: "1rem" },
+                            },
+                            "& .MuiInputLabel-root.Mui-focused": { color: "primary.main" },
+                          }}
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <FormControl fullWidth required>
+                          <InputLabel
+                            sx={{
+                              color: "primary.main",
+                              fontSize: { xs: "0.9rem", sm: "1rem" },
+                              "&.Mui-focused": { color: "primary.main" },
+                            }}
+                          >
+                            Internship Period
+                          </InputLabel>
+                          <Select
+                            name="internshipPeriod"
+                            value={formData.internshipPeriod}
+                            onChange={handleInputChange}
+                            variant="outlined"
+                            sx={{
+                              "& .MuiOutlinedInput-notchedOutline": {
+                                borderColor: "grey.500",
+                                "&:hover": { borderColor: "primary.main" },
+                              },
+                              "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                                borderColor: "primary.main",
+                              },
+                            }}
+                          >
+                            <MenuItem value="1 week">1 Week</MenuItem>
+                            <MenuItem value="2 weeks">2 Weeks</MenuItem>
+                            <MenuItem value="1 month">1 Month</MenuItem>
+                            <MenuItem value="3 months">3 Months</MenuItem>
+                            <MenuItem value="6 months">6 Months</MenuItem>
+                          </Select>
+                        </FormControl>
+                      </Grid>
+                      <Grid item xs={12}>
+                        <Button
+                          fullWidth
+                          variant="contained"
+                          type="submit"
+                          disabled={loading}
+                          sx={{
+                            py: { xs: 1, sm: 1.5 },
+                            fontSize: { xs: "1rem", sm: "1.2rem" },
+                            fontWeight: 700,
+                            borderRadius: 2,
+                            bgcolor: "secondary.main",
+                            "&:hover": { bgcolor: "#1E88E5" },
+                            boxShadow: "0px 4px 10px rgba(0,0,0,0.2)",
+                            transition: "all 0.3s ease",
+                            color: "white",
+                            position: "relative",
                           }}
                         >
-                          <MenuItem value="1 week">1 Week</MenuItem>
-                          <MenuItem value="2 weeks">2 Weeks</MenuItem>
-                          <MenuItem value="1 month">1 Month</MenuItem>
-                          <MenuItem value="3 months">3 Months</MenuItem>
-                          <MenuItem value="6 months">6 Months</MenuItem>
-                        </Select>
-                      </FormControl>
+                          {loading ? (
+                            <CircularProgress
+                              size={24}
+                              sx={{
+                                color: "white",
+                                position: "absolute",
+                                top: "50%",
+                                left: "50%",
+                                marginTop: "-12px",
+                                marginLeft: "-12px",
+                              }}
+                            />
+                          ) : (
+                            "Register"
+                          )}
+                        </Button>
+                      </Grid>
+                      <Grid item xs={12} sx={{ textAlign: "center" }}>
+                        <Link
+                          href="/login"
+                          variant="body2"
+                          sx={{
+                            color: "primary.main",
+                            fontSize: { xs: "0.8rem", sm: "1rem" },
+                            textDecoration: "underline",
+                            "&:hover": { color: "secondary.main" },
+                          }}
+                        >
+                          Already have an account? Login
+                        </Link>
+                      </Grid>
                     </Grid>
-                    <Grid item xs={12}>
-                      <Button
-                        fullWidth
-                        variant="contained"
-                        type="submit"
-                        disabled={loading} // Disable button while loading
-                        sx={{
-                          py: { xs: 1, sm: 1.5 },
-                          fontSize: { xs: "1rem", sm: "1.2rem" },
-                          fontWeight: 700,
-                          borderRadius: 2,
-                          bgcolor: "secondary.main",
-                          "&:hover": { bgcolor: "#1E88E5" },
-                          boxShadow: "0px 4px 10px rgba(0,0,0,0.2)",
-                          transition: "all 0.3s ease",
-                          color: "white",
-                          position: "relative",
-                        }}
-                      >
-                        {loading ? (
-                          <CircularProgress
-                            size={24}
-                            sx={{
-                              color: "white",
-                              position: "absolute",
-                              top: "50%",
-                              left: "50%",
-                              marginTop: "-12px",
-                              marginLeft: "-12px",
-                            }}
-                          />
-                        ) : (
-                          "Sign Up"
-                        )}
-                      </Button>
-                    </Grid>
-                    <Grid item xs={12} sx={{ textAlign: "center" }}>
-                      <Link
-                        href="/login"
-                        variant="body2"
-                        sx={{
-                          color: "primary.main",
-                          fontSize: { xs: "0.8rem", sm: "1rem" },
-                          textDecoration: "underline",
-                          "&:hover": { color: "secondary.main" },
-                        }}
-                      >
-                        Already have an account? Login
-                      </Link>
-                    </Grid>
-                  </Grid>
-                </Box>
+                  </Box>
+                )}
+                {step === 2 && (
+                  <Box component="form" onSubmit={handleOtpSubmit}>
+                    <Typography variant="body2" sx={{ mb: 2 }}>Enter the OTP sent to your email</Typography>
+                    <TextField
+                      fullWidth
+                      label="OTP"
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value)}
+                      required
+                      sx={{ mb: 2 }}
+                    />
+                    <Button
+                      fullWidth
+                      variant="contained"
+                      type="submit"
+                      disabled={loading}
+                      sx={{
+                        py: { xs: 1, sm: 1.5 },
+                        fontSize: { xs: "1rem", sm: "1.2rem" },
+                        fontWeight: 700,
+                        borderRadius: 2,
+                        bgcolor: "secondary.main",
+                        "&:hover": { bgcolor: "#1E88E5" },
+                        boxShadow: "0px 4px 10px rgba(0,0,0,0.2)",
+                        transition: "all 0.3s ease",
+                        color: "white",
+                        position: "relative",
+                      }}
+                    >
+                      {loading ? (
+                        <CircularProgress
+                          size={24}
+                          sx={{
+                            color: "white",
+                            position: "absolute",
+                            top: "50%",
+                            left: "50%",
+                            marginTop: "-12px",
+                            marginLeft: "-12px",
+                          }}
+                        />
+                      ) : (
+                        "Verify OTP & Register"
+                      )}
+                    </Button>
+                  </Box>
+                )}
+                {step === 3 && (
+                  <Typography variant="h6" color="success.main" align="center">Registration successful! Redirecting to login page...</Typography>
+                )}
               </CardContent>
             </Box>
           </Card>
         </Container>
+        <ToastContainer />
       </Box>
-      <ToastContainer />
     </ThemeProvider>
   );
 };

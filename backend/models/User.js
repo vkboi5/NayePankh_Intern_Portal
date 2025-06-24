@@ -50,6 +50,18 @@ const userSchema = new mongoose.Schema({
     enum: ["1 week", "2 weeks", "1 month", "3 months", "6 months"],
     required: true,
   },
+  otp: {
+    type: String,
+    default: null,
+  },
+  otpExpiry: {
+    type: Date,
+    default: null,
+  },
+  isVerified: {
+    type: Boolean,
+    default: false,
+  },
 }, {
   timestamps: true,
 });

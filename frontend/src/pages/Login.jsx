@@ -31,76 +31,102 @@ const theme = createTheme({
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
+  const [otp, setOtp] = useState("");
+  const [step, setStep] = useState(1); // 1: login form, 2: otp, 3: done
+  const [internEmail, setInternEmail] = useState("");
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate(); // Hook for navigation
+  const navigate = useNavigate();
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const validateGmail = (email) => {
+    const gmailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+    return gmailRegex.test(email);
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault();
+    
+    // Check if it's likely an intern (Gmail address) and validate
+    if (validateGmail(formData.email)) {
+      // This is likely an intern, validate Gmail
+      if (!validateGmail(formData.email)) {
+        toast.error("Please use a valid Gmail address for intern login.");
+        return;
+      }
+    }
+    
     setLoading(true);
-
     try {
-      const response = await fetch(
-        "https://naye-pankh-intern-portal-ox93.vercel.app/api/auth/login",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
-        }
-      );
+      const response = await fetch("https://naye-pankh-intern-portal-ox93.vercel.app/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
       const data = await response.json();
-      console.log(data);
-      if (response.ok) {
-        const token = data.token;
-        localStorage.setItem("token", token);
-
-        // Option 1: If role is in response (preferred)
+      console.log("Login response:", data); // Debug log
+      
+      if (response.ok && data.msg && data.msg.includes("OTP sent")) {
+        // Intern login - OTP required
+        setInternEmail(formData.email);
+        setStep(2); // Show OTP input
+        toast.info("OTP sent to your email.");
+        setLoading(false);
+      } else if (response.ok && data.token) {
+        // Admin/Super Admin - direct login
+        localStorage.setItem("token", data.token);
         let role = data.user.role;
-
-        // Option 2: If role is in token (decode JWT)
         if (!role) {
-          const decoded = jwtDecode(token);
-          role = decoded.role; // Assumes role is in token payload; adjust if different
+          const decoded = jwtDecode(data.token);
+          role = decoded.role;
         }
-
         toast.success("Successfully logged in!", {
-          position: "top-right",
-          autoClose: 2000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          theme: "colored",
           onClose: () => {
             setLoading(false);
-            // Redirect based on role
-            if (role === "Super Admin") {
-              navigate("/superadmin");
-            } else if (role === "Admin") {
-              navigate("/moderator");
-            } else {
-              navigate("/dashboard"); // Default for "user" role
-            }
+            if (role === "Super Admin") navigate("/superadmin");
+            else if (role === "Admin") navigate("/moderator");
+            else navigate("/dashboard");
           },
         });
       } else {
-        toast.error(data.msg || "Login failed", {
-          position: "top-right",
-          autoClose: 2000,
-          onClose: () => setLoading(false),
-        });
+        toast.error(data.msg || "Login failed");
+        setLoading(false);
       }
     } catch (error) {
       console.error("Login error:", error);
-      toast.error("An error occurred. Please try again.", {
-        position: "top-right",
-        autoClose: 2000,
-        onClose: () => setLoading(false),
+      toast.error("An error occurred. Please try again.");
+      setLoading(false);
+    }
+  };
+
+  const handleOtpSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const response = await fetch("https://naye-pankh-intern-portal-ox93.vercel.app/api/auth/login-verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: internEmail, otp }),
       });
+      const data = await response.json();
+      if (response.ok && data.token) {
+        localStorage.setItem("token", data.token);
+        toast.success("Login successful!", {
+          onClose: () => {
+            setLoading(false);
+            navigate("/dashboard");
+          },
+        });
+      } else {
+        toast.error(data.msg || "OTP verification failed");
+        setLoading(false);
+      }
+    } catch (error) {
+      toast.error("An error occurred. Please try again.");
+      setLoading(false);
     }
   };
 
@@ -172,106 +198,156 @@ const Login = () => {
                 </Typography>
               </Box>
               <CardContent sx={{ p: { xs: 2, sm: 4 } }}>
-                <Box component="form" onSubmit={handleLogin}>
-                  <Grid container spacing={{ xs: 2, sm: 3 }}>
-                    <Grid item xs={12}>
-                      <TextField
-                        fullWidth
-                        label="Email"
-                        name="email"
-                        variant="outlined"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        required
-                        type="email"
-                        sx={{
-                          "& .MuiOutlinedInput-root": {
-                            "&:hover fieldset": { borderColor: "primary.main" },
-                            "&.Mui-focused fieldset": { borderColor: "primary.main" },
-                          },
-                          "& .MuiInputLabel-root": { color: "primary.main", fontSize: { xs: "0.9rem", sm: "1rem" } },
-                          "& .MuiInputLabel-root.Mui-focused": { color: "primary.main" },
-                        }}
-                      />
+                {step === 1 && (
+                  <Box component="form" onSubmit={handleLogin}>
+                    <Grid container spacing={{ xs: 2, sm: 3 }}>
+                      <Grid item xs={12}>
+                        <TextField
+                          fullWidth
+                          label="Email"
+                          name="email"
+                          variant="outlined"
+                          value={formData.email}
+                          onChange={handleInputChange}
+                          required
+                          type="email"
+                          helperText={validateGmail(formData.email) ? "Gmail address detected (Intern)" : "Regular email (Admin/Super Admin)"}
+                          sx={{
+                            "& .MuiOutlinedInput-root": {
+                              "&:hover fieldset": { borderColor: "primary.main" },
+                              "&.Mui-focused fieldset": { borderColor: "primary.main" },
+                            },
+                            "& .MuiInputLabel-root": { color: "primary.main", fontSize: { xs: "0.9rem", sm: "1rem" } },
+                            "& .MuiInputLabel-root.Mui-focused": { color: "primary.main" },
+                          }}
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <TextField
+                          fullWidth
+                          label="Password"
+                          name="password"
+                          variant="outlined"
+                          value={formData.password}
+                          onChange={handleInputChange}
+                          required
+                          type="password"
+                          sx={{
+                            "& .MuiOutlinedInput-root": {
+                              "&:hover fieldset": { borderColor: "primary.main" },
+                              "&.Mui-focused fieldset": { borderColor: "primary.main" },
+                            },
+                            "& .MuiInputLabel-root": { color: "primary.main", fontSize: { xs: "0.9rem", sm: "1rem" } },
+                            "& .MuiInputLabel-root.Mui-focused": { color: "primary.main" },
+                          }}
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <Button
+                          fullWidth
+                          variant="contained"
+                          type="submit"
+                          disabled={loading}
+                          sx={{
+                            py: { xs: 1, sm: 1.5 },
+                            fontSize: { xs: "1rem", sm: "1.2rem" },
+                            fontWeight: 700,
+                            borderRadius: 2,
+                            bgcolor: "secondary.main",
+                            "&:hover": { bgcolor: "#1E88E5" },
+                            boxShadow: "0px 4px 10px rgba(0,0,0,0.2)",
+                            transition: "all 0.3s ease",
+                            color: "white",
+                            position: "relative",
+                          }}
+                        >
+                          {loading ? (
+                            <CircularProgress
+                              size={24}
+                              sx={{
+                                color: "white",
+                                position: "absolute",
+                                top: "50%",
+                                left: "50%",
+                                marginTop: "-12px",
+                                marginLeft: "-12px",
+                              }}
+                            />
+                          ) : (
+                            "Login"
+                          )}
+                        </Button>
+                      </Grid>
+                      <Grid item xs={12} sx={{ textAlign: "center" }}>
+                        <Link
+                          href="/register"
+                          variant="body2"
+                          sx={{
+                            color: "primary.main",
+                            fontSize: { xs: "0.8rem", sm: "1rem" },
+                            textDecoration: "underline",
+                            "&:hover": { color: "secondary.main" },
+                          }}
+                        >
+                          New User? Please Register
+                        </Link>
+                      </Grid>
                     </Grid>
-                    <Grid item xs={12}>
-                      <TextField
-                        fullWidth
-                        label="Password"
-                        name="password"
-                        variant="outlined"
-                        value={formData.password}
-                        onChange={handleInputChange}
-                        required
-                        type="password"
-                        sx={{
-                          "& .MuiOutlinedInput-root": {
-                            "&:hover fieldset": { borderColor: "primary.main" },
-                            "&.Mui-focused fieldset": { borderColor: "primary.main" },
-                          },
-                          "& .MuiInputLabel-root": { color: "primary.main", fontSize: { xs: "0.9rem", sm: "1rem" } },
-                          "& .MuiInputLabel-root.Mui-focused": { color: "primary.main" },
-                        }}
-                      />
-                    </Grid>
-                    <Grid item xs={12}>
-                      <Button
-                        fullWidth
-                        variant="contained"
-                        type="submit"
-                        disabled={loading}
-                        sx={{
-                          py: { xs: 1, sm: 1.5 },
-                          fontSize: { xs: "1rem", sm: "1.2rem" },
-                          fontWeight: 700,
-                          borderRadius: 2,
-                          bgcolor: "secondary.main",
-                          "&:hover": { bgcolor: "#1E88E5" },
-                          boxShadow: "0px 4px 10px rgba(0,0,0,0.2)",
-                          transition: "all 0.3s ease",
-                          color: "white",
-                          position: "relative",
-                        }}
-                      >
-                        {loading ? (
-                          <CircularProgress
-                            size={24}
-                            sx={{
-                              color: "white",
-                              position: "absolute",
-                              top: "50%",
-                              left: "50%",
-                              marginTop: "-12px",
-                              marginLeft: "-12px",
-                            }}
-                          />
-                        ) : (
-                          "Sign In"
-                        )}
-                      </Button>
-                    </Grid>
-                    <Grid item xs={12} sx={{ textAlign: "center" }}>
-                      <Link
-                        href="/register"
-                        variant="body2"
-                        sx={{
-                          color: "primary.main",
-                          fontSize: { xs: "0.8rem", sm: "1rem" },
-                          textDecoration: "underline",
-                          "&:hover": { color: "secondary.main" },
-                        }}
-                      >
-                        New User? Register Now!
-                      </Link>
-                    </Grid>
-                  </Grid>
-                </Box>
+                  </Box>
+                )}
+                {step === 2 && (
+                  <Box component="form" onSubmit={handleOtpSubmit}>
+                    <Typography variant="body2" sx={{ mb: 2 }}>Enter the OTP sent to your email</Typography>
+                    <TextField
+                      fullWidth
+                      label="OTP"
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value)}
+                      required
+                      sx={{ mb: 2 }}
+                    />
+                    <Button
+                      fullWidth
+                      variant="contained"
+                      type="submit"
+                      disabled={loading}
+                      sx={{
+                        py: { xs: 1, sm: 1.5 },
+                        fontSize: { xs: "1rem", sm: "1.2rem" },
+                        fontWeight: 700,
+                        borderRadius: 2,
+                        bgcolor: "secondary.main",
+                        "&:hover": { bgcolor: "#1E88E5" },
+                        boxShadow: "0px 4px 10px rgba(0,0,0,0.2)",
+                        transition: "all 0.3s ease",
+                        color: "white",
+                        position: "relative",
+                      }}
+                    >
+                      {loading ? (
+                        <CircularProgress
+                          size={24}
+                          sx={{
+                            color: "white",
+                            position: "absolute",
+                            top: "50%",
+                            left: "50%",
+                            marginTop: "-12px",
+                            marginLeft: "-12px",
+                          }}
+                        />
+                      ) : (
+                        "Verify OTP & Login"
+                      )}
+                    </Button>
+                  </Box>
+                )}
               </CardContent>
             </Box>
           </Card>
         </Container>
+        <ToastContainer />
       </Box>
-      <ToastContainer />
     </ThemeProvider>
   );
 };
