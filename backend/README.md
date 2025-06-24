@@ -6,7 +6,7 @@ This document provides a detailed explanation of the authentication, user, campa
 
 ## Base URL
 
-- **Development:** `http://localhost:5000`
+- **Development:** `https://naye-pankh-intern-portal-ox93.vercel.app`
 - **Production:** (your deployed backend URL)
 
 All endpoints are prefixed with `/api`.
@@ -17,7 +17,7 @@ All endpoints are prefixed with `/api`.
 
 ## Base URL
 
-- **Development:** `http://localhost:5000`
+- **Development:** `https://naye-pankh-intern-portal-ox93.vercel.app`
 - **Production:** (your deployed backend URL)
 
 All endpoints are prefixed with `/api/auth`.

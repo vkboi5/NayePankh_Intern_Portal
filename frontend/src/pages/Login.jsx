@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   Typography,
   Box,
@@ -29,6 +29,70 @@ const theme = createTheme({
   typography: { fontFamily: "'Poppins', sans-serif" },
   breakpoints: { values: { xs: 0, sm: 600, md: 900, lg: 1200, xl: 1536 } },
 });
+
+const OTP_LENGTH = 6;
+
+const OtpInput = ({ value, onChange, loading }) => {
+  const inputs = useRef([]);
+  const handleChange = (e, idx) => {
+    const val = e.target.value.replace(/[^0-9]/g, "");
+    if (!val) return;
+    let otpArr = value.split("");
+    otpArr[idx] = val[val.length - 1];
+    const newOtp = otpArr.join("");
+    onChange(newOtp);
+    if (val && idx < OTP_LENGTH - 1) {
+      inputs.current[idx + 1].focus();
+    }
+  };
+  const handlePaste = (e) => {
+    const paste = e.clipboardData.getData("text").replace(/[^0-9]/g, "").slice(0, OTP_LENGTH);
+    if (paste.length === OTP_LENGTH) {
+      onChange(paste);
+      inputs.current[OTP_LENGTH - 1].focus();
+      e.preventDefault();
+    }
+  };
+  const handleKeyDown = (e, idx) => {
+    if (e.key === "Backspace" && !value[idx] && idx > 0) {
+      inputs.current[idx - 1].focus();
+    }
+  };
+  return (
+    <Box sx={{ display: "flex", justifyContent: "center", gap: 2, mb: 2 }}>
+      {[...Array(OTP_LENGTH)].map((_, idx) => (
+        <input
+          key={idx}
+          ref={el => inputs.current[idx] = el}
+          type="text"
+          inputMode="numeric"
+          maxLength={1}
+          value={value[idx] || ""}
+          onChange={e => handleChange(e, idx)}
+          onPaste={handlePaste}
+          onKeyDown={e => handleKeyDown(e, idx)}
+          disabled={loading}
+          style={{
+            width: 44,
+            height: 54,
+            fontSize: "2rem",
+            textAlign: "center",
+            border: "2px solid #1976d2",
+            borderRadius: 8,
+            background: "#fafdff",
+            color: "#1976d2",
+            outline: "none",
+            boxShadow: "0 2px 8px rgba(33,110,182,0.07)",
+            transition: "border 0.2s, box-shadow 0.2s",
+            marginRight: idx !== OTP_LENGTH - 1 ? 8 : 0,
+            fontWeight: 600,
+            letterSpacing: 2,
+          }}
+        />
+      ))}
+    </Box>
+  );
+};
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -324,20 +388,15 @@ const Login = () => {
                 )}
                 {step === 2 && (
                   <Box component="form" onSubmit={handleOtpSubmit}>
-                    <Typography variant="body2" sx={{ mb: 2 }}>Enter the OTP sent to your email</Typography>
-                    <TextField
-                      fullWidth
-                      label="OTP"
-                      value={otp}
-                      onChange={(e) => setOtp(e.target.value)}
-                      required
-                      sx={{ mb: 2 }}
-                    />
+                    <Typography variant="body2" sx={{ mb: 2, textAlign: 'center', fontWeight: 500, color: 'primary.main' }}>
+                      Enter the 6-digit OTP sent to your email
+                    </Typography>
+                    <OtpInput value={otp} onChange={setOtp} loading={loading} />
                     <Button
                       fullWidth
                       variant="contained"
                       type="submit"
-                      disabled={loading}
+                      disabled={loading || otp.length !== 6}
                       sx={{
                         py: { xs: 1, sm: 1.5 },
                         fontSize: { xs: "1rem", sm: "1.2rem" },
