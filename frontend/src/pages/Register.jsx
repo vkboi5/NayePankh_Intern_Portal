@@ -400,6 +400,7 @@ const Register = () => {
                       <Grid item xs={12}>
                         <FormControl fullWidth required>
                           <InputLabel
+                            id="internship-period-label"
                             sx={{
                               color: "primary.main",
                               fontSize: { xs: "0.9rem", sm: "1rem" },
@@ -409,10 +410,13 @@ const Register = () => {
                             Internship Period
                           </InputLabel>
                           <Select
+                            labelId="internship-period-label"
+                            id="internship-period"
                             name="internshipPeriod"
                             value={formData.internshipPeriod}
                             onChange={handleInputChange}
                             variant="outlined"
+                            label="Internship Period"
                             sx={{
                               "& .MuiOutlinedInput-notchedOutline": {
                                 borderColor: "grey.500",
