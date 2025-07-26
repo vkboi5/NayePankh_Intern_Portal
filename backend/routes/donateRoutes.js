@@ -181,7 +181,7 @@ router.post("/verify", async (req, res) => {
       return res.status(400).json({ msg: "Invalid payment signature" });
     }
 
-    const donation = await Donation.findOne({ paymentId: razorpay_order_id });
+    const donation = await Donation.findOne({ paymentId: razorpay_payment_id });
     if (!donation) {
       return res.status(404).json({ msg: "Donation not found" });
     }
