@@ -183,7 +183,7 @@ router.post("/verify", async (req, res) => {
 
     const donation = await Donation.findOne({ paymentId: razorpay_payment_id });
     if (!donation) {
-      return res.status(404).json({ msg: "Donation not found" });
+      return res.status(404).json({ msg: "Donation not found" })
     }
 
     donation.paymentStatus = "completed";
